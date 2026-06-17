@@ -1,0 +1,12 @@
+.git
+.github
+.next
+node_modules
+npm-debug.log*
+README.md
+PROJECT-ACTIONS.md
+AGENTS.md
+CLAUDE.md
+.env*
+Dockerfile
+docker-compose.yml
