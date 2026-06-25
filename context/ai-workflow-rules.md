@@ -17,3 +17,35 @@ Split an implementation step if it combines:
 If a change cannot be verified end to end quickly, the scope is too broad - split it. 
 
 ## Handeling Missing Requirements
+- Donot invent product behavior that is not defined in the context files. 
+- If a requirement is ambiguous, resolve it in the relevant context file before implementing. 
+- If a requirement is missing, add it as an open question in progress-tracker.md before continuing. 
+
+## Protected Foundation Components
+Do not modify generated third-party foundation components unless explicity instructed. 
+
+This includes:
+- components/ui/* (shadcn/ui components)
+- third-party library internals
+
+These should remain default and reusable. 
+
+Project-specific styling, layout changes, and feature logic must be implemented in app-level components instead of modifying foundation components. 
+
+only modify these files when a task explicitly requires it. 
+
+## Keeping Docs In Sync
+Update the relevant context file whenever implemented changes: 
+- System architecture or boundaries 
+- Storage model decisions
+- Code conventions or standards 
+- Feature scope
+
+Progress state must reflect the actual state of the implementation, not the intended state. 
+
+## Before Moving To The Next Unit
+1. The currect unit works end to end within its defined scope. 
+2. No invariant defined in architecture-context.md was violated 
+3. progress-tracker.md reflects the completed work. 
+
+
