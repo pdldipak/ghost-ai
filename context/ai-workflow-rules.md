@@ -43,6 +43,14 @@ Update the relevant context file whenever implemented changes:
 
 Progress state must reflect the actual state of the implementation, not the intended state. 
 
+### Project history (`PROJECT-ACTIONS.md`)
+After every completed task, append one row to the table in `context/PROJECT-ACTIONS.md`:
+- **Date:** `YYYY-MM-DD`
+- **Action:** one past-tense sentence describing what was done
+- Append only — never edit or delete existing rows
+- One row per meaningful unit of work (feature, fix, infra, spec/context update)
+- Follow the rules in the "For AI agents" section at the top of that file
+
 ## Before Moving To The Next Unit
 1. The currect unit works end to end within its defined scope. 
 2. No invariant defined in architecture-context.md was violated 
