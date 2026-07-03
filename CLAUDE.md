@@ -1,1 +1,1 @@
-context/@AGENTS.md
+@AGENTS.md
