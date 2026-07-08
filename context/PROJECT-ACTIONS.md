@@ -30,3 +30,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-06-25 | Documented Docker production and dev run commands in `README.md` |
 | 2026-07-03 | Restructured root `AGENTS.md`: merged duplicate sections, added PROJECT-ACTIONS to reading order, clarified post-task doc updates |
 | 2026-07-08 | Installed and configured shadcn/ui (base-nova): dark theme tokens in `globals.css`, `lib/utils.ts` with `cn()`, lucide-react, and Button/Card/Dialog/Input/Tabs/Textarea/ScrollArea primitives |
+| 2026-07-08 | Added editor base chrome: `EditorNavbar`, floating `ProjectSidebar`, and reusable `EditorDialog` pattern under `components/editor/` |
