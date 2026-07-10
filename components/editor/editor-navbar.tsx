@@ -2,6 +2,7 @@
 
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
+import { AuthControls } from "@/components/auth-controls";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +41,9 @@ export function EditorNavbar({
 
       <div className="flex flex-1 items-center justify-center" />
 
-      <div className="flex flex-1 items-center justify-end" />
+      <div className="flex flex-1 items-center justify-end">
+        <AuthControls />
+      </div>
     </header>
   );
 }

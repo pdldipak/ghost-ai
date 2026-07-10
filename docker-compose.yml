@@ -9,7 +9,7 @@ services:
   app-dev:
     profiles:
       - dev
-    image: node:20-alpine
+    image: node:22-alpine
     working_dir: /app
     ports:
       - "3000:3000"
