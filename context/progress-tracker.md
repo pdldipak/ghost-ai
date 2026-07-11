@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — editor base chrome complete; ready for next feature unit
+- Foundation — auth refined per spec; ready for next feature unit
 
 ## Current Goal
 
@@ -14,7 +14,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - Design system and UI primitives (`feature-specs/01-design-system.md`): shadcn/ui configured, dark theme tokens in `globals.css`, `lib/utils.ts` with `cn()`, lucide-react installed, Button/Card/Dialog/Input/Tabs/Textarea/ScrollArea added under `components/ui/`.
 - Editor base chrome (`feature-specs/02-editor.md`): `EditorNavbar` with sidebar toggle, `ProjectSidebar` floating shell with My Projects/Shared tabs, and `EditorDialog` pattern for future dialogs.
-- Clerk authentication: CLI-linked app, `@clerk/nextjs` with `proxy.ts` protection, sign-in/sign-up routes, shadcn-themed provider, and `AuthControls` in home header and editor navbar.
+- Clerk authentication (`feature-specs/03-auth.md`): `@clerk/ui` dark theme with CSS-variable overrides, two-panel auth pages, env-driven public routes in `proxy.ts`, `/` redirects (auth → `/editor`, unauth → `/sign-in`), `/editor` shell route, and `UserButton` in editor navbar.
 
 ## In Progress
 
@@ -35,8 +35,9 @@ Feature 01:
 - **Class merging:** `lib/utils.ts` exports `cn()` (`clsx` + `tailwind-merge`) as the standard helper for conditional Tailwind classes.
 Feature 02:
 - **Editor chrome:** App-level editor components live in `components/editor/` and compose shadcn primitives; the project sidebar floats above the canvas (fixed overlay, no layout push).
-- **Auth:** Clerk via `@clerk/nextjs`; `proxy.ts` protects non-public routes; sign-in/sign-up at `/sign-in` and `/sign-up`; `AuthControls` component surfaces sign-in, sign-up, and user menu.
+Feature 03:
+- **Auth:** Clerk via `@clerk/nextjs`; `proxy.ts` protects non-public routes using `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL`; sign-in/sign-up use two-panel `AuthPageLayout` with Clerk `dark` theme and CSS-variable appearance overrides; `/` redirects by auth state; `UserButton` in editor navbar.
 
 ## Session Notes
 
-- Editor chrome is ready to wire into an editor route/layout when the canvas feature lands.
+- Editor chrome is wired into `/editor` via `EditorShell`; canvas feature can build on this route next.

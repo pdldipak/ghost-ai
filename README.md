@@ -1,4 +1,4 @@
-# ghost AI
+# Ghost Assistant
 
 Minimal Next.js app.
 
@@ -47,4 +47,4 @@ Stop either mode with `Ctrl+C`, or run `docker compose down` in another terminal
 
 ## CI/CD
 
-GitHub Actions runs lint + build on every push/PR. On `main`, it also builds and pushes a Docker image to GitHub Container Registry (`ghcr.io/pdldipak/ghost-ai`).
+GitHub Actions runs lint + build on every push/PR. On `main`, it also builds and pushes a Docker image to GitHub Container Registry (`ghcr.io/pdldipak/ghost-assistant`).

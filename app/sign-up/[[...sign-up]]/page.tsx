@@ -1,9 +1,11 @@
 import { SignUp } from "@clerk/nextjs";
 
+import { AuthPageLayout } from "@/components/auth/auth-page-layout";
+
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <AuthPageLayout>
       <SignUp />
-    </div>
+    </AuthPageLayout>
   );
 }

@@ -1,6 +1,6 @@
 # Project Actions
 
-Chronological history of completed work on **ghost-ai**.
+Chronological history of completed work on **Ghost Assistant**.
 
 ## For AI agents
 
@@ -33,3 +33,6 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-08 | Added editor base chrome: `EditorNavbar`, floating `ProjectSidebar`, and reusable `EditorDialog` pattern under `components/editor/` |
 | 2026-07-10 | Set up Clerk authentication via CLI: `@clerk/nextjs`, `proxy.ts` route protection, sign-in/sign-up routes, shadcn-themed `ClerkProvider`, and `AuthControls` in home header and editor navbar |
 | 2026-07-10 | Fixed Docker/CI Node 22 requirement and regenerated `package-lock.json` with npm 10 so `npm ci` works in containers after Clerk deps were added |
+| 2026-07-10 | Refined Clerk auth per `03-auth.md`: dark theme with CSS-variable overrides, two-panel auth layout, env-driven public routes, `/` auth redirects, `/editor` shell route, and `UserButton` in editor navbar |
+| 2026-07-10 | Wired Geist Sans and Geist Mono into Clerk appearance and app shell so auth UI matches project typography guidelines |
+| 2026-07-10 | Redesigned auth page layout to match reference (branding panel, feature icons, Clerk card styling) and renamed product branding to Ghost Assistant (`ghost-assistant` package slug) across auth UI, metadata, and docs |
