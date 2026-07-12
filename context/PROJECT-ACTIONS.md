@@ -36,3 +36,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-10 | Refined Clerk auth per `03-auth.md`: dark theme with CSS-variable overrides, two-panel auth layout, env-driven public routes, `/` auth redirects, `/editor` shell route, and `UserButton` in editor navbar |
 | 2026-07-10 | Wired Geist Sans and Geist Mono into Clerk appearance and app shell so auth UI matches project typography guidelines |
 | 2026-07-10 | Redesigned auth page layout to match reference (branding panel, feature icons, Clerk card styling) and renamed product branding to Ghost Assistant (`ghost-assistant` package slug) across auth UI, metadata, and docs |
+| 2026-07-11 | Added editor home, create/rename/delete project dialogs, `useProjectDialogs` hook, mock project data, sidebar actions for owned projects, and mobile sidebar backdrop per `04-project-dialogs.md` |
+| 2026-07-11 | Fixed hydration console warning by adding `suppressHydrationWarning` on `<body>` — caused by browser extension injecting `cz-shortcut-listen` before React hydrate |

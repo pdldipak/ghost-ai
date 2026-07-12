@@ -13,5 +13,4 @@ After completing the analysis, provide:
 Wait for my explicit approval ("green light") before making any changes or executing the solution.
 
 ## Current Issue
-
 [Paste the issue details here]
