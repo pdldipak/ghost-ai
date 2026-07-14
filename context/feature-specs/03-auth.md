@@ -35,3 +35,21 @@ Update `/`:
 - authenticated users redirect to `/editor`
 - unauthenticated users redirect to `/sign-in`
 
+Add Clerk's built-in `UserButton` to the editor navbar right section for profile settings and logout. 
+
+Keep Clerk's default user menu and profile flows intact. Do not rebuild or heavily customize Clerk internals. 
+
+Use existing Clerk env vars. Do not rename or invent new ones. 
+
+## Dependencies
+
+install: @clerk/ui. 
+
+## Check When Done 
+
+- `prox.ts` exists at the root
+- all routes are protected expect public auth paths
+- auth pages use CSS variables with no hardcoded colors 
+- `ClerkProvider` wraps the root layout 
+- `npm run build` passes
+

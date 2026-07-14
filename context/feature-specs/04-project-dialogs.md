@@ -58,8 +58,30 @@ On mobile:
 - tapping outside the sidebar closes it 
 - add a backdrop scrim 
 
+## Implementation
+
+Create a dedicated hook to manage:
+
+- dialog state
+- form state
+- loading state
+
+Wire:
+
+- editor home `New Project` → Create dialog
+- sidebar create → Create dialog
+- sidebar rename → Rename dialog
+- sidebar delete → Delete dialog
+
+Use mock project data only. Do not add API calls or persistence.
 
 
+## Check When Done
+
+- sidebar actions are wired
+- slug preview works
+- no TypeScript errors
+- no lint errors
 
 
 
