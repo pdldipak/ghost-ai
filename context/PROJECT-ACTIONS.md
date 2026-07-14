@@ -38,3 +38,6 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-10 | Redesigned auth page layout to match reference (branding panel, feature icons, Clerk card styling) and renamed product branding to Ghost Assistant (`ghost-assistant` package slug) across auth UI, metadata, and docs |
 | 2026-07-11 | Added editor home, create/rename/delete project dialogs, `useProjectDialogs` hook, mock project data, sidebar actions for owned projects, and mobile sidebar backdrop per `04-project-dialogs.md` |
 | 2026-07-11 | Fixed hydration console warning by adding `suppressHydrationWarning` on `<body>` — caused by browser extension injecting `cz-shortcut-listen` before React hydrate |
+| 2026-07-14 | Documented Prisma initial setup, day-to-day CLI commands, and Docker equivalents in `README.md` |
+| 2026-07-14 | Added `npx skills add prisma/skills` to Prisma setup docs in `README.md` |
+| 2026-07-14 | Added Prisma `Project` and `ProjectCollaborator` models, `lib/prisma.ts` singleton, and initial migration per `05-prisma.md` |
