@@ -1,7 +1,7 @@
-# Ghost AI
+# Ghost Assistant
 
 ## Overview 
-Ghost Ai is a real-time collaborative system design workspace. Users describe a syatem in plan English, an AI agent maps that system onto a shared canvas, collaboration refine the architecture, and the app generates a technical specific from the resulting graph. 
+Ghost Assistant is a real-time collaborative system design workspace. Users describe a syatem in plan English, an AI agent maps that system onto a shared canvas, collaboration refine the architecture, and the app generates a technical specific from the resulting graph. 
 
 ## Goals 
 1. Let authenticated users create and manage archicture projects. 
