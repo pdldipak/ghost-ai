@@ -42,9 +42,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { name, description } = body as {
+  const { name, description, id } = body as {
     name?: unknown;
     description?: unknown;
+    id?: unknown;
   };
 
   if (name !== undefined && typeof name !== "string") {
@@ -62,14 +63,47 @@ export async function POST(request: Request) {
     );
   }
 
+  if (id !== undefined) {
+    if (typeof id !== "string" || id.trim().length === 0) {
+      return NextResponse.json(
+        { error: "id must be a non-empty string" },
+        { status: 400 },
+      );
+    }
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id.trim())) {
+      return NextResponse.json(
+        { error: "id must be a lowercase slug" },
+        { status: 400 },
+      );
+    }
+  }
+
   const projectName =
     typeof name === "string" && name.trim().length > 0
       ? name.trim()
       : DEFAULT_PROJECT_NAME;
 
+  const projectId =
+    typeof id === "string" && id.trim().length > 0 ? id.trim() : undefined;
+
+  if (projectId) {
+    const existing = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "Project id already exists" },
+        { status: 409 },
+      );
+    }
+  }
+
   const project = await prisma.$transaction(async (tx) => {
     const created = await tx.project.create({
       data: {
+        ...(projectId ? { id: projectId } : {}),
         ownerId: userId,
         name: projectName,
         ...(description !== undefined

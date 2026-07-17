@@ -8,7 +8,7 @@ interface CreateProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectName: string;
-  slugPreview: string;
+  roomIdPreview: string;
   isLoading: boolean;
   onProjectNameChange: (name: string) => void;
   onSubmit: () => void;
@@ -18,7 +18,7 @@ export function CreateProjectDialog({
   open,
   onOpenChange,
   projectName,
-  slugPreview,
+  roomIdPreview,
   isLoading,
   onProjectNameChange,
   onSubmit,
@@ -70,9 +70,9 @@ export function CreateProjectDialog({
         </div>
 
         <div className="space-y-1">
-          <p className="text-sm text-copy-muted">Slug preview</p>
+          <p className="text-sm text-copy-muted">Room ID preview</p>
           <p className="font-mono text-sm text-copy-secondary">
-            {slugPreview || "project-slug"}
+            {roomIdPreview || "project-room-id"}
           </p>
         </div>
       </form>

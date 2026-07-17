@@ -1,13 +1,13 @@
 "use client";
 
-import type { UseProjectDialogsReturn } from "@/hooks/use-project-dialogs";
+import type { UseProjectActionsReturn } from "@/hooks/use-project-actions";
 
 import { CreateProjectDialog } from "@/components/editor/create-project-dialog";
 import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog";
 import { RenameProjectDialog } from "@/components/editor/rename-project-dialog";
 
 interface ProjectDialogsProps {
-  dialogs: UseProjectDialogsReturn;
+  dialogs: UseProjectActionsReturn;
 }
 
 export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
@@ -15,7 +15,7 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
     activeDialog,
     selectedProject,
     projectName,
-    slugPreview,
+    roomIdPreview,
     isLoading,
     closeDialog,
     setProjectName,
@@ -34,7 +34,7 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
           }
         }}
         projectName={projectName}
-        slugPreview={slugPreview}
+        roomIdPreview={roomIdPreview}
         isLoading={isLoading}
         onProjectNameChange={setProjectName}
         onSubmit={handleCreate}

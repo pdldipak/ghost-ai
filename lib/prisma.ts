@@ -7,6 +7,30 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/**
+ * node-pg currently treats prefer/require/verify-ca as verify-full and warns.
+ * Normalize to verify-full so current security behavior is explicit and quiet.
+ */
+function normalizeDatabaseUrl(databaseUrl: string): string {
+  try {
+    const parsed = new URL(databaseUrl);
+    const sslmode = parsed.searchParams.get("sslmode");
+
+    if (
+      sslmode === "prefer" ||
+      sslmode === "require" ||
+      sslmode === "verify-ca"
+    ) {
+      parsed.searchParams.set("sslmode", "verify-full");
+      return parsed.toString();
+    }
+
+    return databaseUrl;
+  } catch {
+    return databaseUrl;
+  }
+}
+
 function createPrismaClient(): PrismaClient {
   const databaseUrl = process.env.DATABASE_URL;
 
@@ -20,7 +44,9 @@ function createPrismaClient(): PrismaClient {
     }).$extends(withAccelerate()) as unknown as PrismaClient;
   }
 
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  const adapter = new PrismaPg({
+    connectionString: normalizeDatabaseUrl(databaseUrl),
+  });
 
   return new PrismaClient({ adapter });
 }

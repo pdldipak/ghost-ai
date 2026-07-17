@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Project APIs complete; ready for next feature unit
+- Foundation — Editor home wired to project APIs; ready for next feature unit
 
 ## Current Goal
 
@@ -18,6 +18,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Project dialogs and editor home (`feature-specs/04-project-dialogs.md`): `EditorHome` with New Project CTA, create/rename/delete dialogs with slug preview, `useProjectDialogs` hook, mock project data, sidebar rename/delete actions (owned only), and mobile sidebar backdrop scrim.
 - Prisma data layer (`feature-specs/05-prisma.md`): `Project` and `ProjectCollaborator` models in `prisma/models/project.prisma`, cached singleton in `lib/prisma.ts` (Accelerate vs `@prisma/adapter-pg`), and initial migration applied.
 - Project APIs (`feature-specs/06-project-apis.md`): REST routes for list/create/rename/delete under `app/api/projects`; Clerk `userId` as `ownerId`; default name `Untitled Project`; owner-only rename/delete with `401`/`403`; backend-only (UI still mock).
+- Wire editor home (`feature-specs/07-wire-editor-home.md`): server-fetched owned/shared projects via `lib/projects.ts`; `useProjectActions` for create/rename/delete against real APIs; room ID = project ID (`slug-suffix`); create navigates to `/editor/[projectId]`; rename refreshes; delete redirects to `/editor` when active workspace deleted.
 
 ## In Progress
 
@@ -46,7 +47,9 @@ Feature 05:
 - **Prisma:** Multi-file schema under `prisma/` with `Project` (ownerId, status enum, canvasJsonPath, indexes) and `ProjectCollaborator` (cascade delete, unique project/email); client generated to `app/generated/prisma`; `lib/prisma.ts` branches on `DATABASE_URL` — Accelerate when `prisma+postgress://`, otherwise `@prisma/adapter-pg`; dev singleton cached on `global`.
 Feature 06:
 - **Project APIs:** Authenticated REST handlers in `app/api/projects` and `app/api/projects/[projectId]`; create uses Prisma `cuid()` IDs and sets `canvasJsonPath` to `canvas/{projectId}.json`; list scoped to `ownerId`; rename/delete require ownership (`403` for non-owners, `401` when unauthenticated).
+Feature 07:
+- **Editor ↔ API wiring:** `/editor` and `/editor/[projectId]` are server components that load owned/shared projects via `lib/projects.ts` (no client initial fetch). `useProjectActions` owns dialog state and calls create/rename/delete APIs. Create generates a room ID as `slugify(name)-suffix`, sends it as project `id` so project ID and Liveblocks room ID stay aligned, then navigates to `/editor/{id}`. Rename uses `router.refresh()`; delete redirects to `/editor` when the active workspace is removed.
 
 ## Session Notes
 
-- Editor UI still uses mock project data; wire dialogs/sidebar to these APIs in a later unit.
+- Mock project data removed; sidebar and dialogs use live project lists from the server.
