@@ -54,8 +54,10 @@ PostgreSQL via [Prisma 7](https://www.prisma.io/docs). The generated client is w
 Set `DATABASE_URL` in `.env` (Prisma CLI) and `.env.local` (Next.js), for example:
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=verify-full"
 ```
+
+For hosted Postgres (including Prisma Postgres), use `sslmode=verify-full` so node-pg keeps current certificate verification without deprecation warnings. Avoid `sslmode=require` unless you also set `uselibpqcompat=true` and accept weaker libpq semantics.
 
 ### Initial setup (one-time)
 

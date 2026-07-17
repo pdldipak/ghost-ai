@@ -1,12 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
-import { useProjectDialogs } from "@/hooks/use-project-dialogs";
+import { useProjectActions } from "@/hooks/use-project-actions";
+import type { Project } from "@/lib/project-types";
 import { cn } from "@/lib/utils";
 
 function SidebarBackdrop({
@@ -30,11 +32,36 @@ function SidebarBackdrop({
   );
 }
 
-export function EditorShell() {
+function WorkspacePlaceholder({ projectId }: { projectId: string }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+      <h1 className="text-2xl font-medium text-copy">Workspace</h1>
+      <p className="mt-3 font-mono text-sm text-copy-muted">{projectId}</p>
+    </div>
+  );
+}
+
+interface EditorShellProps {
+  ownedProjects: Project[];
+  sharedProjects: Project[];
+  activeProjectId?: string;
+}
+
+export function EditorShell({
+  ownedProjects,
+  sharedProjects,
+  activeProjectId,
+}: EditorShellProps) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const projectDialogs = useProjectDialogs();
+  const projectActions = useProjectActions({ activeProjectId });
 
   const closeSidebar = () => setIsSidebarOpen(false);
+
+  const handleOpenProject = (project: Project) => {
+    closeSidebar();
+    router.push(`/editor/${project.id}`);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-base">
@@ -47,14 +74,20 @@ export function EditorShell() {
         <ProjectSidebar
           isOpen={isSidebarOpen}
           onClose={closeSidebar}
-          ownedProjects={projectDialogs.ownedProjects}
-          sharedProjects={projectDialogs.sharedProjects}
-          onNewProject={projectDialogs.openCreateDialog}
-          onRenameProject={projectDialogs.openRenameDialog}
-          onDeleteProject={projectDialogs.openDeleteDialog}
+          ownedProjects={ownedProjects}
+          sharedProjects={sharedProjects}
+          activeProjectId={activeProjectId}
+          onNewProject={projectActions.openCreateDialog}
+          onOpenProject={handleOpenProject}
+          onRenameProject={projectActions.openRenameDialog}
+          onDeleteProject={projectActions.openDeleteDialog}
         />
-        <EditorHome onNewProject={projectDialogs.openCreateDialog} />
-        <ProjectDialogs dialogs={projectDialogs} />
+        {activeProjectId ? (
+          <WorkspacePlaceholder projectId={activeProjectId} />
+        ) : (
+          <EditorHome onNewProject={projectActions.openCreateDialog} />
+        )}
+        <ProjectDialogs dialogs={projectActions} />
       </main>
     </div>
   );

@@ -5,7 +5,7 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Project } from "@/lib/mock-projects";
+import type { Project } from "@/lib/project-types";
 import { cn } from "@/lib/utils";
 
 interface ProjectSidebarProps {
@@ -13,7 +13,9 @@ interface ProjectSidebarProps {
   onClose: () => void;
   ownedProjects: Project[];
   sharedProjects: Project[];
+  activeProjectId?: string;
   onNewProject: () => void;
+  onOpenProject: (project: Project) => void;
   onRenameProject: (project: Project) => void;
   onDeleteProject: (project: Project) => void;
   className?: string;
@@ -29,18 +31,32 @@ function EmptyTabPlaceholder({ label }: { label: string }) {
 
 interface ProjectListItemProps {
   project: Project;
+  isActive: boolean;
+  onOpen: (project: Project) => void;
   onRename?: (project: Project) => void;
   onDelete?: (project: Project) => void;
 }
 
-function ProjectListItem({ project, onRename, onDelete }: ProjectListItemProps) {
+function ProjectListItem({
+  project,
+  isActive,
+  onOpen,
+  onRename,
+  onDelete,
+}: ProjectListItemProps) {
   const showActions = project.isOwned && onRename && onDelete;
 
   return (
-    <div className="group flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-elevated">
+    <div
+      className={cn(
+        "group flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-elevated",
+        isActive && "bg-elevated",
+      )}
+    >
       <button
         type="button"
         className="min-w-0 flex-1 truncate text-left text-sm text-copy"
+        onClick={() => onOpen(project)}
       >
         {project.name}
       </button>
@@ -74,11 +90,15 @@ function ProjectListItem({ project, onRename, onDelete }: ProjectListItemProps) 
 function ProjectList({
   projects,
   emptyLabel,
+  activeProjectId,
+  onOpen,
   onRename,
   onDelete,
 }: {
   projects: Project[];
   emptyLabel: string;
+  activeProjectId?: string;
+  onOpen: (project: Project) => void;
   onRename?: (project: Project) => void;
   onDelete?: (project: Project) => void;
 }) {
@@ -93,6 +113,8 @@ function ProjectList({
           <ProjectListItem
             key={project.id}
             project={project}
+            isActive={project.id === activeProjectId}
+            onOpen={onOpen}
             onRename={onRename}
             onDelete={onDelete}
           />
@@ -107,7 +129,9 @@ export function ProjectSidebar({
   onClose,
   ownedProjects,
   sharedProjects,
+  activeProjectId,
   onNewProject,
+  onOpenProject,
   onRenameProject,
   onDeleteProject,
   className,
@@ -146,6 +170,8 @@ export function ProjectSidebar({
           <ProjectList
             projects={ownedProjects}
             emptyLabel="No projects yet"
+            activeProjectId={activeProjectId}
+            onOpen={onOpenProject}
             onRename={onRenameProject}
             onDelete={onDeleteProject}
           />
@@ -158,6 +184,8 @@ export function ProjectSidebar({
           <ProjectList
             projects={sharedProjects}
             emptyLabel="No shared projects yet"
+            activeProjectId={activeProjectId}
+            onOpen={onOpenProject}
           />
         </TabsContent>
       </Tabs>
