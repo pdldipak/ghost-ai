@@ -44,3 +44,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-17 | Added authenticated project REST APIs (list/create/rename/delete) with owner checks and 401/403 handling per `06-project-apis.md` |
 | 2026-07-17 | Wired editor home sidebar and dialogs to real project APIs with server-fetched lists, `useProjectActions`, and workspace navigation per `07-wire-editor-home.md` |
 | 2026-07-17 | Fixed pg SSL deprecation warning by setting `sslmode=verify-full` in env and normalizing prefer/require/verify-ca in `lib/prisma.ts` |
+| 2026-07-17 | Lazy-initialized Prisma client so `next build` no longer requires `DATABASE_URL` during page data collection in CI |

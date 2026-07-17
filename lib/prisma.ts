@@ -51,8 +51,27 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  return globalForPrisma.prisma;
 }
+
+/**
+ * Lazy proxy so importing this module during `next build` does not require
+ * DATABASE_URL. The client is created on first property access at runtime.
+ */
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client, prop, receiver);
+
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+
+    return value;
+  },
+});
