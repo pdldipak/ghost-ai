@@ -1,13 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
+import { ShareProjectDialog } from "@/components/editor/share-project-dialog";
 import { useProjectActions } from "@/hooks/use-project-actions";
+import { useShareDialog } from "@/hooks/use-share-dialog";
 import type { Project } from "@/lib/project-types";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +77,20 @@ export function EditorShell({
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const projectActions = useProjectActions({ activeProjectId });
 
+  const isOwner = useMemo(
+    () =>
+      Boolean(
+        activeProjectId &&
+          ownedProjects.some((project) => project.id === activeProjectId),
+      ),
+    [activeProjectId, ownedProjects],
+  );
+
+  const shareDialog = useShareDialog({
+    projectId: activeProjectId,
+    isOwner,
+  });
+
   const closeSidebar = () => setIsSidebarOpen(false);
   const isWorkspace = Boolean(activeProjectId && activeProjectName);
 
@@ -91,7 +107,7 @@ export function EditorShell({
         projectName={activeProjectName}
         isAiSidebarOpen={isAiSidebarOpen}
         onAiSidebarToggle={() => setIsAiSidebarOpen((open) => !open)}
-        onShareClick={() => undefined}
+        onShareClick={shareDialog.openDialog}
       />
       <main className="relative flex min-h-0 flex-1">
         <SidebarBackdrop isOpen={isSidebarOpen} onClose={closeSidebar} />
@@ -115,6 +131,29 @@ export function EditorShell({
           <EditorHome onNewProject={projectActions.openCreateDialog} />
         )}
         <ProjectDialogs dialogs={projectActions} />
+        {isWorkspace && activeProjectName ? (
+          <ShareProjectDialog
+            open={shareDialog.open}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen) {
+                shareDialog.closeDialog();
+              }
+            }}
+            projectName={activeProjectName}
+            isOwner={shareDialog.isOwner}
+            inviteEmail={shareDialog.inviteEmail}
+            collaborators={shareDialog.collaborators}
+            isLoading={shareDialog.isLoading}
+            isInviting={shareDialog.isInviting}
+            removingEmail={shareDialog.removingEmail}
+            linkCopied={shareDialog.linkCopied}
+            error={shareDialog.error}
+            onInviteEmailChange={shareDialog.setInviteEmail}
+            onInvite={shareDialog.handleInvite}
+            onRemove={shareDialog.handleRemove}
+            onCopyLink={shareDialog.handleCopyLink}
+          />
+        ) : null}
       </main>
     </div>
   );

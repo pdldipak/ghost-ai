@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 
+import { normalizeEmail } from "@/lib/collaborators";
 import { prisma } from "@/lib/prisma";
 
 export interface ClerkIdentity {
@@ -15,10 +16,11 @@ export async function getClerkIdentity(): Promise<ClerkIdentity | null> {
   }
 
   const user = await currentUser();
-  const email =
+  const rawEmail =
     user?.primaryEmailAddress?.emailAddress ??
     user?.emailAddresses[0]?.emailAddress ??
     null;
+  const email = rawEmail ? normalizeEmail(rawEmail) : null;
 
   return { userId, email };
 }
@@ -28,12 +30,16 @@ export async function getAccessibleProject(
   userId: string,
   email: string | null | undefined,
 ) {
+  const normalizedEmail = email ? normalizeEmail(email) : null;
+
   return prisma.project.findFirst({
     where: {
       id: projectId,
       OR: [
         { ownerId: userId },
-        ...(email ? [{ collaborators: { some: { email } } }] : []),
+        ...(normalizedEmail
+          ? [{ collaborators: { some: { email: normalizedEmail } } }]
+          : []),
       ],
     },
   });

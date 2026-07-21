@@ -46,3 +46,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-17 | Fixed pg SSL deprecation warning by setting `sslmode=verify-full` in env and normalizing prefer/require/verify-ca in `lib/prisma.ts` |
 | 2026-07-17 | Lazy-initialized Prisma client so `next build` no longer requires `DATABASE_URL` during page data collection in CI |
 | 2026-07-21 | Added editor workspace shell with server-side project access checks, AccessDenied UI, and canvas/AI sidebar placeholders per `08-editor-workspace-shell.md` |
+| 2026-07-21 | Added share dialog with collaborator invite/remove APIs, Clerk name/avatar enrichment, and owner vs read-only collaborator UI per `09-share-dialog.md` |

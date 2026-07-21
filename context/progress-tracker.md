@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Editor workspace shell with access checks; ready for next feature unit
+- Foundation — Share dialog with collaborator invite/remove; ready for next feature unit
 
 ## Current Goal
 
@@ -20,6 +20,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Project APIs (`feature-specs/06-project-apis.md`): REST routes for list/create/rename/delete under `app/api/projects`; Clerk `userId` as `ownerId`; default name `Untitled Project`; owner-only rename/delete with `401`/`403`; backend-only (UI still mock).
 - Wire editor home (`feature-specs/07-wire-editor-home.md`): server-fetched owned/shared projects via `lib/projects.ts`; `useProjectActions` for create/rename/delete against real APIs; room ID = project ID (`slug-suffix`); create navigates to `/editor/[projectId]`; rename refreshes; delete redirects to `/editor` when active workspace deleted.
 - Editor workspace shell (`feature-specs/08-editor-workspace-shell.md`): server-side access checks on `/editor/[projectId]` via `lib/project-access.ts`; `AccessDenied` for missing/unauthorized projects; full-viewport workspace with project name navbar, share + AI toggle stubs, canvas placeholder, and right AI sidebar placeholder.
+- Share dialog (`feature-specs/09-share-dialog.md`): Share button opens dialog from workspace; owners invite/remove collaborators by email and copy project link with temporary `Copied!` feedback; collaborators see read-only list; `GET`/`POST`/`DELETE` `/api/projects/[projectId]/collaborators` with owner-only invite/remove; Clerk Backend API enriches names/avatars with email fallback; no local user table.
 
 ## In Progress
 
@@ -52,6 +53,8 @@ Feature 07:
 - **Editor ↔ API wiring:** `/editor` and `/editor/[projectId]` are server components that load owned/shared projects via `lib/projects.ts` (no client initial fetch). `useProjectActions` owns dialog state and calls create/rename/delete APIs. Create generates a room ID as `slugify(name)-suffix`, sends it as project `id` so project ID and Liveblocks room ID stay aligned, then navigates to `/editor/{id}`. Rename uses `router.refresh()`; delete redirects to `/editor` when the active workspace is removed.
 Feature 08:
 - **Workspace shell + access:** `/editor/[projectId]` checks Clerk identity and project membership (owner or collaborator email) via `lib/project-access.ts` before render; unauthenticated users redirect to `/sign-in`; missing/unauthorized projects render `AccessDenied`. Workspace layout is full-viewport with project name in the navbar, no-op share and AI sidebar toggles, dark canvas placeholder, and a collapsible right AI sidebar placeholder — no Liveblocks, canvas, or chat logic yet.
+Feature 09:
+- **Share + collaborators:** Collaborators stored by normalized email in `ProjectCollaborator` only (no local user table). List/invite/remove via `/api/projects/[projectId]/collaborators`; invite and remove are owner-only server-side. List enrichment uses Clerk Backend `users.getUserList({ emailAddress })` for display name and avatar, falling back to email-only when no Clerk user exists. Share UI is `ShareProjectDialog` + `useShareDialog`, opened from the workspace navbar Share button; owners can invite/remove and copy link, collaborators get a read-only list.
 
 ## Session Notes
 
