@@ -41,4 +41,4 @@ Do not add a local user table.
 - owners can invite and remove collaborators
 - collaborators see read-only access
 - collaborator names/avatars load from Clerk when available
-- make sure `npm run build` passes
+- make sure `npm run lint` and `npm run build` passes
