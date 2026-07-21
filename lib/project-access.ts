@@ -1,0 +1,49 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
+
+import { prisma } from "@/lib/prisma";
+
+export interface ClerkIdentity {
+  userId: string;
+  email: string | null;
+}
+
+export async function getClerkIdentity(): Promise<ClerkIdentity | null> {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const user = await currentUser();
+  const email =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses[0]?.emailAddress ??
+    null;
+
+  return { userId, email };
+}
+
+export async function getAccessibleProject(
+  projectId: string,
+  userId: string,
+  email: string | null | undefined,
+) {
+  return prisma.project.findFirst({
+    where: {
+      id: projectId,
+      OR: [
+        { ownerId: userId },
+        ...(email ? [{ collaborators: { some: { email } } }] : []),
+      ],
+    },
+  });
+}
+
+export async function canAccessProject(
+  projectId: string,
+  userId: string,
+  email: string | null | undefined,
+): Promise<boolean> {
+  const project = await getAccessibleProject(projectId, userId, email);
+  return project !== null;
+}

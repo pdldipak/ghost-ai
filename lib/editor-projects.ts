@@ -1,6 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { getClerkIdentity } from "@/lib/project-access";
 import { getUserProjects } from "@/lib/projects";
 import type { Project } from "@/lib/project-types";
 
@@ -8,16 +8,11 @@ export async function requireEditorProjects(): Promise<{
   ownedProjects: Project[];
   sharedProjects: Project[];
 }> {
-  const { userId } = await auth();
+  const identity = await getClerkIdentity();
 
-  if (!userId) {
+  if (!identity) {
     redirect("/sign-in");
   }
 
-  const user = await currentUser();
-  const email =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses[0]?.emailAddress;
-
-  return getUserProjects(userId, email);
+  return getUserProjects(identity.userId, identity.email);
 }

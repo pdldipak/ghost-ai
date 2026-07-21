@@ -32,12 +32,28 @@ function SidebarBackdrop({
   );
 }
 
-function WorkspacePlaceholder({ projectId }: { projectId: string }) {
+function CanvasPlaceholder() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
-      <h1 className="text-2xl font-medium text-copy">Workspace</h1>
-      <p className="mt-3 font-mono text-sm text-copy-muted">{projectId}</p>
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center bg-base px-4 text-center">
+      <p className="text-sm text-copy-muted">Canvas will appear here</p>
     </div>
+  );
+}
+
+function AiSidebarPlaceholder({ isOpen }: { isOpen: boolean }) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <aside className="flex h-full w-80 shrink-0 flex-col border-l border-surface-border bg-surface">
+      <div className="border-b border-surface-border px-4 py-3">
+        <h2 className="text-sm font-medium text-copy">AI Assistant</h2>
+      </div>
+      <div className="flex flex-1 items-center justify-center px-4">
+        <p className="text-center text-sm text-copy-muted">AI chat coming soon</p>
+      </div>
+    </aside>
   );
 }
 
@@ -45,18 +61,22 @@ interface EditorShellProps {
   ownedProjects: Project[];
   sharedProjects: Project[];
   activeProjectId?: string;
+  activeProjectName?: string;
 }
 
 export function EditorShell({
   ownedProjects,
   sharedProjects,
   activeProjectId,
+  activeProjectName,
 }: EditorShellProps) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const projectActions = useProjectActions({ activeProjectId });
 
   const closeSidebar = () => setIsSidebarOpen(false);
+  const isWorkspace = Boolean(activeProjectId && activeProjectName);
 
   const handleOpenProject = (project: Project) => {
     closeSidebar();
@@ -64,12 +84,16 @@ export function EditorShell({
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-base">
+    <div className="flex h-screen flex-col overflow-hidden bg-base">
       <EditorNavbar
         isSidebarOpen={isSidebarOpen}
         onSidebarToggle={() => setIsSidebarOpen((open) => !open)}
+        projectName={activeProjectName}
+        isAiSidebarOpen={isAiSidebarOpen}
+        onAiSidebarToggle={() => setIsAiSidebarOpen((open) => !open)}
+        onShareClick={() => undefined}
       />
-      <main className="relative flex flex-1 flex-col">
+      <main className="relative flex min-h-0 flex-1">
         <SidebarBackdrop isOpen={isSidebarOpen} onClose={closeSidebar} />
         <ProjectSidebar
           isOpen={isSidebarOpen}
@@ -82,8 +106,11 @@ export function EditorShell({
           onRenameProject={projectActions.openRenameDialog}
           onDeleteProject={projectActions.openDeleteDialog}
         />
-        {activeProjectId ? (
-          <WorkspacePlaceholder projectId={activeProjectId} />
+        {isWorkspace ? (
+          <>
+            <CanvasPlaceholder />
+            <AiSidebarPlaceholder isOpen={isAiSidebarOpen} />
+          </>
         ) : (
           <EditorHome onNewProject={projectActions.openCreateDialog} />
         )}
