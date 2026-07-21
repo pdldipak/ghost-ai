@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export interface ShareCollaborator {
   id: string;
@@ -61,16 +61,14 @@ export function useShareDialog({
     setRemovingEmail(null);
   }, []);
 
-  const loadCollaborators = useCallback(async () => {
-    if (!projectId) {
-      return;
-    }
-
+  const loadCollaborators = useCallback(async (activeProjectId: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/collaborators`);
+      const response = await fetch(
+        `/api/projects/${activeProjectId}/collaborators`,
+      );
 
       if (!response.ok) {
         setError("Failed to load collaborators");
@@ -85,15 +83,7 @@ export function useShareDialog({
       setError("Failed to load collaborators");
       setIsLoading(false);
     }
-  }, [projectId]);
-
-  useEffect(() => {
-    if (!open || !projectId) {
-      return;
-    }
-
-    void loadCollaborators();
-  }, [loadCollaborators, open, projectId]);
+  }, []);
 
   const openDialog = useCallback(() => {
     if (!projectId) {
@@ -103,8 +93,10 @@ export function useShareDialog({
     setInviteEmail("");
     setError(null);
     setLinkCopied(false);
+    setCollaborators([]);
     setOpen(true);
-  }, [projectId]);
+    void loadCollaborators(projectId);
+  }, [loadCollaborators, projectId]);
 
   const handleInvite = useCallback(async () => {
     if (!projectId || !isOwner) {
