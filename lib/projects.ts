@@ -1,3 +1,4 @@
+import { normalizeEmail } from "@/lib/collaborators";
 import { prisma } from "@/lib/prisma";
 import { generateProjectSlug } from "@/lib/project-slug";
 import type { Project } from "@/lib/project-types";
@@ -25,7 +26,7 @@ export async function getOwnedProjects(userId: string): Promise<Project[]> {
 
 export async function getSharedProjects(email: string): Promise<Project[]> {
   const collaborations = await prisma.projectCollaborator.findMany({
-    where: { email },
+    where: { email: normalizeEmail(email) },
     include: { project: true },
     orderBy: { createdAt: "desc" },
   });
