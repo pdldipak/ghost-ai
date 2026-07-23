@@ -48,3 +48,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-21 | Added editor workspace shell with server-side project access checks, AccessDenied UI, and canvas/AI sidebar placeholders per `08-editor-workspace-shell.md` |
 | 2026-07-21 | Added share dialog with collaborator invite/remove APIs, Clerk name/avatar enrichment, and owner vs read-only collaborator UI per `09-share-dialog.md` |
 | 2026-07-21 | Fixed CI lint failure by loading share-dialog collaborators on open instead of setState-in-effect |
+| 2026-07-23 | Documented required stack, env vars, agent skills (Prisma + Liveblocks), and planned Trigger.dev/Blob in README.md |
+| 2026-07-23 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves utf-8-validate@5.0.10; fixed Liveblocks empty-object lint types |
