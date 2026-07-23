@@ -48,4 +48,4 @@ Do not add real canvas logic, Liveblocks, AI chat, or sharing behavior yet.
 - `AccessDenied` is used for missing or unauthorized projects
 - workspace layout renders with current project context
 - no TypeScript errors
-- make sure`npm run build` passes 
+- make sure `npm run lint` and `npm run build` passes

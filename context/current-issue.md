@@ -46,43 +46,29 @@ I will reply with one of the following:
 CI/CD on build error 
 
 ## Error Message
-[16s
-Run npm run build
-
-> ghost-assistant@0.1.0 build
-> prisma generate && next build
-
-Loaded Prisma config from prisma.config.ts.
-
-Prisma schema loaded from prisma.
-
-✔ Generated Prisma Client (7.8.0) to ./app/generated/prisma in 42ms
-
-⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
-▲ Next.js 16.2.9 (Turbopack)
-
-  Creating an optimized production build ...
-✓ Compiled successfully in 8.4s
-  Running TypeScript ...
-  Finished TypeScript in 4.7s ...
-  Collecting page data using 1 worker ...
-Error: DATABASE_URL is not set
-    at <unknown> (.next/server/chunks/_1a99o88._.js:47:33347)
-    at <unknown> (.next/server/chunks/_1a99o88._.js:47:33783)
-
-> Build error occurred
-Error: Failed to collect page data for /api/projects/[projectId]
-    at ignore-listed frames {
-  type: 'Error'
-}
+[5s
+Run npm run lint
+> ghost-assistant@0.1.0 lint
+> eslint
+/home/runner/work/ghost-ai/ghost-ai/hooks/use-share-dialog.ts
+  95:10  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+/home/runner/work/ghost-ai/ghost-ai/hooks/use-share-dialog.ts:95:10
+  93 |     }
+  94 |
+> 95 |     void loadCollaborators();
+     |          ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |   }, [loadCollaborators, open, projectId]);
+  97 |
+  98 |   const openDialog = useCallback(() => {  react-hooks/set-state-in-effect
+✖ 1 problem (1 error, 0 warnings)
 Error: Process completed with exit code 1.
+
 ]
 
 
 ### Check When Done 
- `npm run build` passes
+`npm run lint` and `npm run build` passes
