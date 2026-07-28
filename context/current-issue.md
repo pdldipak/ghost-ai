@@ -74,11 +74,11 @@ npm error
 npm error aliases: clean-install, ic, install-clean, isntall-clean
 npm error
 npm error Run "npm help ci" for more info
-npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-07-23T20_57_52_361Z-debug-0.log
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-07-28T21_25_55_135Z-debug-0.log
 Error: Process completed with exit code 1.
 
 ]
 
 
 ### Check When Done 
-`npm run lint` and `npm run build` passes
+`npm run ci`, `npm run lint` and `npm run build` passes
