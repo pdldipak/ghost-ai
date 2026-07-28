@@ -19,7 +19,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Postgres driver** (`@prisma/adapter-pg`, `pg`) | Direct `postgresql://` connections |
 | **Prisma Accelerate** (`@prisma/extension-accelerate`) | Accelerate URL (`prisma+postgres://`) path in `lib/prisma.ts` |
 | **dotenv** | Load `DATABASE_URL` for Prisma CLI / `prisma.config.ts` |
-| **Liveblocks** (`@liveblocks/client`, `react`, `react-flow`, `react-ui`) | Real-time shared canvas, presence, cursors |
+| **Liveblocks** (`@liveblocks/client`, `node`, `react`, `react-flow`, `react-ui`) | Real-time shared canvas, presence, cursors, room auth |
 | **`liveblocks.config.ts`** | Typed Presence / Storage / UserMeta for Liveblocks |
 | **React Flow** (`@xyflow/react`) | Canvas nodes and edges |
 | **shadcn/ui** + Tailwind + Lucide | Editor UI primitives |
@@ -33,7 +33,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `DATABASE_URL` | Prisma / Postgres (prefer `sslmode=verify-full`) |
 | Clerk keys (`NEXT_PUBLIC_CLERK_*`, secret key) | Auth + `proxy.ts` |
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `SIGN_UP_URL` | Public auth paths |
-| Liveblocks keys | Room auth when canvas is wired |
+| `LIVEBLOCKS_SECRET_KEY` | Server room auth (`/api/liveblocks-auth`) |
 
 ## Agent skills
 

@@ -50,3 +50,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-21 | Fixed CI lint failure by loading share-dialog collaborators on open instead of setState-in-effect |
 | 2026-07-23 | Documented required stack, env vars, agent skills (Prisma + Liveblocks), and planned Trigger.dev/Blob in README.md |
 | 2026-07-23 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves utf-8-validate@5.0.10; fixed Liveblocks empty-object lint types |
+| 2026-07-28 | Added Liveblocks realtime infra: typed config, cached node client with cursor-color helper, and project-gated `/api/liveblocks-auth` per `10-liveblocks-setup.md` |

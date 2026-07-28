@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Share dialog with collaborator invite/remove; ready for next feature unit
+- Foundation — Liveblocks realtime auth infrastructure in place; ready for next feature unit
 
 ## Current Goal
 
@@ -21,6 +21,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Wire editor home (`feature-specs/07-wire-editor-home.md`): server-fetched owned/shared projects via `lib/projects.ts`; `useProjectActions` for create/rename/delete against real APIs; room ID = project ID (`slug-suffix`); create navigates to `/editor/[projectId]`; rename refreshes; delete redirects to `/editor` when active workspace deleted.
 - Editor workspace shell (`feature-specs/08-editor-workspace-shell.md`): server-side access checks on `/editor/[projectId]` via `lib/project-access.ts`; `AccessDenied` for missing/unauthorized projects; full-viewport workspace with project name navbar, share + AI toggle stubs, canvas placeholder, and right AI sidebar placeholder.
 - Share dialog (`feature-specs/09-share-dialog.md`): Share button opens dialog from workspace; owners invite/remove collaborators by email and copy project link with temporary `Copied!` feedback; collaborators see read-only list; `GET`/`POST`/`DELETE` `/api/projects/[projectId]/collaborators` with owner-only invite/remove; Clerk Backend API enriches names/avatars with email fallback; no local user table.
+- Liveblocks setup (`feature-specs/10-liveblocks-setup.md`): typed `liveblocks.config.ts` Presence/UserMeta; cached `@liveblocks/node` client and deterministic cursor-color helper in `lib/liveblocks.ts`; `POST /api/liveblocks-auth` verifies Clerk + project access, `getOrCreateRoom` by project ID, and returns a session token with name/avatar/color (`403` when unauthorized).
 
 ## In Progress
 
@@ -55,6 +56,8 @@ Feature 08:
 - **Workspace shell + access:** `/editor/[projectId]` checks Clerk identity and project membership (owner or collaborator email) via `lib/project-access.ts` before render; unauthenticated users redirect to `/sign-in`; missing/unauthorized projects render `AccessDenied`. Workspace layout is full-viewport with project name in the navbar, no-op share and AI sidebar toggles, dark canvas placeholder, and a collapsible right AI sidebar placeholder — no Liveblocks, canvas, or chat logic yet.
 Feature 09:
 - **Share + collaborators:** Collaborators stored by normalized email in `ProjectCollaborator` only (no local user table). List/invite/remove via `/api/projects/[projectId]/collaborators`; invite and remove are owner-only server-side. List enrichment uses Clerk Backend `users.getUserList({ emailAddress })` for display name and avatar, falling back to email-only when no Clerk user exists. Share UI is `ShareProjectDialog` + `useShareDialog`, opened from the workspace navbar Share button; owners can invite/remove and copy link, collaborators get a read-only list.
+Feature 10:
+- **Liveblocks infra:** Access-token auth via `prepareSession` (session token). Room ID equals project ID. Rooms are created on demand with private `defaultAccesses: []`; write access granted only after `getAccessibleProject` succeeds. Cursor color is a deterministic hash of Clerk `userId` into a fixed palette. Presence types include `cursor` and `isThinking`; UserMeta `info` carries `name`, `avatar`, and `color`.
 
 ## Session Notes
 
