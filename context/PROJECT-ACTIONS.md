@@ -52,3 +52,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-07-23 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves utf-8-validate@5.0.10; fixed Liveblocks empty-object lint types |
 | 2026-07-28 | Added Liveblocks realtime infra: typed config, cached node client with cursor-color helper, and project-gated `/api/liveblocks-auth` per `10-liveblocks-setup.md` |
 | 2026-07-28 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 again |
+| 2026-08-12 | Replaced workspace canvas placeholder with Liveblocks-backed React Flow (`CanvasRoom` + `FlowCanvas`), added `types/canvas.ts`, and installed `react-error-boundary` per `11-base-canvas.md` |
+| 2026-08-12 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 after canvas deps |
