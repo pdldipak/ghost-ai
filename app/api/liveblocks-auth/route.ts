@@ -11,6 +11,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!process.env.LIVEBLOCKS_SECRET_KEY?.trim()) {
+    return NextResponse.json(
+      {
+        error:
+          "LIVEBLOCKS_SECRET_KEY is not set. Add it to .env.local and restart the dev server.",
+      },
+      { status: 500 },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -44,33 +54,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await liveblocks.getOrCreateRoom(projectId, {
-    defaultAccesses: [],
-  });
+  try {
+    await liveblocks.getOrCreateRoom(projectId, {
+      defaultAccesses: [],
+    });
 
-  const user = await currentUser();
-  const name =
-    user?.fullName?.trim() ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
-    identity.email ||
-    "Anonymous";
-  const avatar = user?.imageUrl ?? "";
-  const color = getCursorColor(identity.userId);
+    const user = await currentUser();
+    const name =
+      user?.fullName?.trim() ||
+      [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+      identity.email ||
+      "Anonymous";
+    const avatar = user?.imageUrl ?? "";
+    const color = getCursorColor(identity.userId);
 
-  const session = liveblocks.prepareSession(identity.userId, {
-    userInfo: {
-      name,
-      avatar,
-      color,
-    },
-  });
+    const session = liveblocks.prepareSession(identity.userId, {
+      userInfo: {
+        name,
+        avatar,
+        color,
+      },
+    });
 
-  session.allow(projectId, session.FULL_ACCESS);
+    session.allow(projectId, session.FULL_ACCESS);
 
-  const { status, body: tokenBody } = await session.authorize();
+    const { status, body: tokenBody } = await session.authorize();
 
-  return new Response(tokenBody, {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+    return new Response(tokenBody, {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Liveblocks authentication failed";
+
+    console.error("[liveblocks-auth]", message);
+
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
