@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Liveblocks realtime auth infrastructure in place; ready for next feature unit
+- Foundation — Base collaborative canvas in place; ready for next feature unit
 
 ## Current Goal
 
@@ -22,6 +22,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Editor workspace shell (`feature-specs/08-editor-workspace-shell.md`): server-side access checks on `/editor/[projectId]` via `lib/project-access.ts`; `AccessDenied` for missing/unauthorized projects; full-viewport workspace with project name navbar, share + AI toggle stubs, canvas placeholder, and right AI sidebar placeholder.
 - Share dialog (`feature-specs/09-share-dialog.md`): Share button opens dialog from workspace; owners invite/remove collaborators by email and copy project link with temporary `Copied!` feedback; collaborators see read-only list; `GET`/`POST`/`DELETE` `/api/projects/[projectId]/collaborators` with owner-only invite/remove; Clerk Backend API enriches names/avatars with email fallback; no local user table.
 - Liveblocks setup (`feature-specs/10-liveblocks-setup.md`): typed `liveblocks.config.ts` Presence/UserMeta; cached `@liveblocks/node` client and deterministic cursor-color helper in `lib/liveblocks.ts`; `POST /api/liveblocks-auth` verifies Clerk + project access, `getOrCreateRoom` by project ID, and returns a session token with name/avatar/color (`403` when unauthorized).
+- Base canvas (`feature-specs/11-base-canvas.md`): workspace placeholder replaced with `CanvasRoom` (`LiveblocksProvider` + `RoomProvider` + suspense/error fallbacks) and `FlowCanvas` (`useLiveblocksFlow` + React Flow with loose connections, `fitView`, MiniMap, dot background); shared `types/canvas.ts` with `NODE_COLORS`, `canvasNode`/`canvasEdge` types.
 
 ## In Progress
 
@@ -58,6 +59,8 @@ Feature 09:
 - **Share + collaborators:** Collaborators stored by normalized email in `ProjectCollaborator` only (no local user table). List/invite/remove via `/api/projects/[projectId]/collaborators`; invite and remove are owner-only server-side. List enrichment uses Clerk Backend `users.getUserList({ emailAddress })` for display name and avatar, falling back to email-only when no Clerk user exists. Share UI is `ShareProjectDialog` + `useShareDialog`, opened from the workspace navbar Share button; owners can invite/remove and copy link, collaborators get a read-only list.
 Feature 10:
 - **Liveblocks infra:** Access-token auth via `prepareSession` (session token). Room ID equals project ID. Rooms are created on demand with private `defaultAccesses: []`; write access granted only after `getAccessibleProject` succeeds. Cursor color is a deterministic hash of Clerk `userId` into a fixed palette. Presence types include `cursor` and `isThinking`; UserMeta `info` carries `name`, `avatar`, and `color`.
+Feature 11:
+- **Base canvas:** Client-only `CanvasRoom` wraps workspace canvas with `LiveblocksProvider` (`/api/liveblocks-auth`), `RoomProvider` (room ID = project ID, `initialPresence` `{ cursor: null, isThinking: false }`), `ErrorBoundary`, and `ClientSideSuspense`. `FlowCanvas` syncs empty nodes/edges via `useLiveblocksFlow` (suspense) into React Flow with `ConnectionMode.Loose`, `fitView`, MiniMap, and dotted `Background`. Shared schema in `types/canvas.ts`: `NODE_COLORS`, `CanvasNodeData` (`label`/`color`/`shape`), typed `canvasNode` / `canvasEdge`. No Controls, custom renderers, blob persistence, or AI yet. Workspace page remains a server component.
 
 ## Session Notes
 

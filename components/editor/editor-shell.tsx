@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { CanvasRoom } from "@/components/editor/canvas-room";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
+import { FlowCanvas } from "@/components/editor/flow-canvas";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ShareProjectDialog } from "@/components/editor/share-project-dialog";
@@ -31,14 +33,6 @@ function SidebarBackdrop({
       onClick={onClose}
       tabIndex={isOpen ? 0 : -1}
     />
-  );
-}
-
-function CanvasPlaceholder() {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center bg-base px-4 text-center">
-      <p className="text-sm text-copy-muted">Canvas will appear here</p>
-    </div>
   );
 }
 
@@ -122,9 +116,11 @@ export function EditorShell({
           onRenameProject={projectActions.openRenameDialog}
           onDeleteProject={projectActions.openDeleteDialog}
         />
-        {isWorkspace ? (
+        {isWorkspace && activeProjectId ? (
           <>
-            <CanvasPlaceholder />
+            <CanvasRoom roomId={activeProjectId}>
+              <FlowCanvas />
+            </CanvasRoom>
             <AiSidebarPlaceholder isOpen={isAiSidebarOpen} />
           </>
         ) : (

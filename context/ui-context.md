@@ -57,7 +57,7 @@ Radius increases with surface depth - smaller for inner elements, larger for out
 | `#331B00`              | `#FF990A`              | `Orange`            |
 | `#3C1618`              | `#FF6166`              | `Red`               |
 | `#3A1726`              | `#F75F8F`              | `Pink`              |
-| `#3A1726`              | `#0F2E18`              | `Green`             |
+| `#0F2E18`              | `#3DD68C`              | `Green`             |
 | `#062822`              | `#0AC7B4`              | `Teal`              |
 
 Default node color: `#1F1F1F` with `#EDEDED` text. 
