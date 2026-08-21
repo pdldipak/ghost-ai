@@ -56,3 +56,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-12 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 after canvas deps |
 | 2026-08-12 | Aligned all `@liveblocks/*` packages to 3.23.1 to fix duplicate `@liveblocks/core` crash on `/api/liveblocks-auth` |
 | 2026-08-12 | Hardened `/api/liveblocks-auth` to return JSON when `LIVEBLOCKS_SECRET_KEY` is missing or Liveblocks calls fail |
+| 2026-08-21 | Added a bottom shape panel so users can drag shapes onto the Liveblocks canvas, with a basic `canvasNode` renderer, per `12-shape-panel.md` |

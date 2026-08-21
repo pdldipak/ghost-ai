@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Base collaborative canvas in place; ready for next feature unit
+- Foundation — Shape panel on the collaborative canvas; ready for next feature unit
 
 ## Current Goal
 
@@ -23,6 +23,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Share dialog (`feature-specs/09-share-dialog.md`): Share button opens dialog from workspace; owners invite/remove collaborators by email and copy project link with temporary `Copied!` feedback; collaborators see read-only list; `GET`/`POST`/`DELETE` `/api/projects/[projectId]/collaborators` with owner-only invite/remove; Clerk Backend API enriches names/avatars with email fallback; no local user table.
 - Liveblocks setup (`feature-specs/10-liveblocks-setup.md`): typed `liveblocks.config.ts` Presence/UserMeta; cached `@liveblocks/node` client and deterministic cursor-color helper in `lib/liveblocks.ts`; `POST /api/liveblocks-auth` verifies Clerk + project access, `getOrCreateRoom` by project ID, and returns a session token with name/avatar/color (`403` when unauthorized).
 - Base canvas (`feature-specs/11-base-canvas.md`): workspace placeholder replaced with `CanvasRoom` (`LiveblocksProvider` + `RoomProvider` + suspense/error fallbacks) and `FlowCanvas` (`useLiveblocksFlow` + React Flow with loose connections, `fitView`, MiniMap, dot background); shared `types/canvas.ts` with `NODE_COLORS`, `canvasNode`/`canvasEdge` types.
+- Shape panel (`feature-specs/12-shape-panel.md`): floating bottom-center pill toolbar with draggable rectangle/diamond/circle/pill/cylinder/hexagon; drop creates `canvasNode` nodes via Liveblocks `onNodesChange`; basic `CanvasNodeView` renderer.
 
 ## In Progress
 
@@ -61,6 +62,8 @@ Feature 10:
 - **Liveblocks infra:** Access-token auth via `prepareSession` (session token). Room ID equals project ID. Rooms are created on demand with private `defaultAccesses: []`; write access granted only after `getAccessibleProject` succeeds. Cursor color is a deterministic hash of Clerk `userId` into a fixed palette. Presence types include `cursor` and `isThinking`; UserMeta `info` carries `name`, `avatar`, and `color`.
 Feature 11:
 - **Base canvas:** Client-only `CanvasRoom` wraps workspace canvas with `LiveblocksProvider` (`/api/liveblocks-auth`), `RoomProvider` (room ID = project ID, `initialPresence` `{ cursor: null, isThinking: false }`), `ErrorBoundary`, and `ClientSideSuspense`. `FlowCanvas` syncs empty nodes/edges via `useLiveblocksFlow` (suspense) into React Flow with `ConnectionMode.Loose`, `fitView`, MiniMap, and dotted `Background`. Shared schema in `types/canvas.ts`: `NODE_COLORS`, `CanvasNodeData` (`label`/`color`/`shape`), typed `canvasNode` / `canvasEdge`. No Controls, custom renderers, blob persistence, or AI yet. Workspace page remains a server component.
+Feature 12:
+- **Shape panel:** Floating pill toolbar at the bottom-center of the canvas with draggable shapes (`rectangle`, `diamond`, `circle`, `pill`, `cylinder`, `hexagon`). Drag payload (`SHAPE_DRAG_MIME`) includes shape plus default size from `SHAPE_DEFAULT_SIZES`. Drop on the canvas wrapper converts screen coordinates with `screenToFlowPosition` and adds a Liveblocks-synced node via `onNodesChange({ type: "add" })`. New nodes use type `canvasNode`, empty label, `DEFAULT_NODE_COLOR`, the dragged shape, and IDs `{shape}-{timestamp}-{counter}`. `CanvasNodeView` renders every shape as a bordered rectangle with a centered label; shape-specific visuals are deferred.
 
 ## Session Notes
 
