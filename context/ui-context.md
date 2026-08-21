@@ -65,7 +65,7 @@ Default node color: `#1F1F1F` with `#EDEDED` text.
 ### Node Shapes
 Six variants: rectangle, pill, and circle use CSS (`rounded-xl` / `rounded-full`); diamond, hexagon, and cylinder use SVG that scales with node size. Borders stay subtle at rest (`border-surface-border` / `--border-default`) and brighten to `--accent-primary` when selected.
 
-Selected nodes show small corner and edge resize handles in `--accent-primary` on `--bg-base`, with a minimum size of 48×32. Labels stay centered; an empty node shows a faint `Label` placeholder. Double-clicking the label area overlays a textarea in the same position so collaborators can edit without shifting layout. 
+Selected nodes show small corner and edge resize handles in `--accent-primary` on `--bg-base`, with a minimum size of 48×32. A floating color toolbar sits just above the selected node with one swatch per `NODE_COLORS` pair; the active swatch is ringed in its text color, and hover uses a tight glow from that same text color. Labels stay centered; an empty node shows a faint `Label` placeholder. Double-clicking the label area overlays a textarea in the same position so collaborators can edit without shifting layout. 
 
 ## Edge Style
 Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke width is thin - edges are visually secondary to nodes. 

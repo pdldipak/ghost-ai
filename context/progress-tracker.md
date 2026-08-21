@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Node resize and inline label editing on the collaborative canvas; ready for next feature unit
+- Foundation — Node color toolbar on selected canvas nodes; ready for next feature unit
 
 ## Current Goal
 
@@ -26,6 +26,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Shape panel (`feature-specs/12-shape-panel.md`): floating bottom-center pill toolbar with draggable rectangle/diamond/circle/pill/cylinder/hexagon; drop creates `canvasNode` nodes via Liveblocks `onNodesChange`; basic `CanvasNodeView` renderer.
 - Node shapes (`feature-specs/13-node-shape.md`): `CanvasNodeView` renders CSS shapes (rectangle/pill/circle) and scaling SVG shapes (diamond/hexagon/cylinder) from Liveblocks node data; dragging a shape from the panel shows a ghost preview at the default drop size that follows the cursor and hides on drop or cancel.
 - Node editing (`feature-specs/14-node-editing.md`): selected `canvasNode` nodes show React Flow `NodeResizer` handles (min 48×32, accent-primary on the dark canvas); double-clicking the centered label overlays a textarea that writes `data.label` through `updateNodeData` / Liveblocks, with a faint `Label` placeholder when empty, and editing ends on blur or Escape without dragging or panning the canvas.
+- Node color toolbar (`feature-specs/15-nodes-color-toolbar.md`): selected `canvasNode` nodes show a floating `NodeToolbar` of `NODE_COLORS` swatches above the node; choosing a swatch writes `data.color` through `updateNodeData` / Liveblocks so fill and paired text color update immediately, with `nodrag` / `nopan` so toolbar clicks do not drag or pan.
 
 ## In Progress
 
@@ -72,6 +73,8 @@ Feature 13:
 Feature 14:
 - **Node resize:** `NodeResizer` is visible only when a `canvasNode` is selected. Min size is `NODE_MIN_WIDTH` / `NODE_MIN_HEIGHT` (48×32). Handle/line color uses `--accent-primary`; dimension changes go through React Flow `onNodesChange` from `useLiveblocksFlow`.
 - **Inline label editing:** `NodeLabel` keeps the label centered, shows `NODE_LABEL_PLACEHOLDER` when empty, and overlays a textarea in the same position while editing. Label updates call `updateNodeData`, which diffs into Liveblocks `onNodesChange`. Editing closes on blur or Escape; `nodrag` / `nopan` / `nowheel` plus pointer stop keep typing from dragging or panning.
+Feature 15:
+- **Node color toolbar:** Selected nodes show React Flow `NodeToolbar` 12px above the node with one swatch per `NODE_COLORS` pair. Active swatch uses a 1.5px ring of the pair's text color; hover uses a tight 4px glow of the same text color. Swatch clicks call `updateNodeData` with the fill; `getNodeTextColor` derives the paired text color. No server calls. Toolbar uses `nodrag` / `nopan` / `nowheel` plus pointer stop so interactions do not drag nodes or pan the canvas.
 
 ## Session Notes
 
