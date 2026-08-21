@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_NODE_SHAPE,
@@ -11,6 +13,7 @@ interface NodeShapeVisualProps {
   textColor: string;
   selected: boolean;
   label: string;
+  labelContent?: ReactNode;
   className?: string;
 }
 
@@ -32,6 +35,7 @@ export function NodeShapeVisual({
   textColor,
   selected,
   label,
+  labelContent,
   className,
 }: NodeShapeVisualProps) {
   const resolvedShape = shape ?? DEFAULT_NODE_SHAPE;
@@ -39,6 +43,9 @@ export function NodeShapeVisual({
     ? "var(--accent-primary)"
     : "var(--border-default)";
   const strokeWidth = selected ? 2 : 1.5;
+  const labelSlot = labelContent ?? (
+    <span className="truncate">{label}</span>
+  );
 
   return (
     <div
@@ -48,13 +55,13 @@ export function NodeShapeVisual({
       {isCssShape(resolvedShape) ? (
         <div
           className={cn(
-            "flex h-full w-full items-center justify-center border px-3 text-center text-sm",
+            "relative flex h-full w-full items-center justify-center border px-3 text-center text-sm",
             CSS_RADIUS[resolvedShape],
             selected ? "border-brand" : "border-surface-border",
           )}
           style={{ backgroundColor: fill }}
         >
-          <span className="truncate">{label}</span>
+          {labelSlot}
         </div>
       ) : (
         <>
@@ -65,7 +72,7 @@ export function NodeShapeVisual({
             strokeWidth={strokeWidth}
           />
           <div className="relative z-10 flex h-full w-full items-center justify-center px-3 text-center text-sm">
-            <span className="truncate">{label}</span>
+            {labelSlot}
           </div>
         </>
       )}

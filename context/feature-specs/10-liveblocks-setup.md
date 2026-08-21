@@ -42,4 +42,4 @@ This route must:
    - generated cursor color
 
 Return `403` for unauthorized project access.
-- make sure `npm ci`, `npm run lint` and `npm run build` passes
+- Make sure `npm ci`, `npm run lint` and `npm run build` passes

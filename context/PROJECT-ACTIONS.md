@@ -58,3 +58,7 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-12 | Hardened `/api/liveblocks-auth` to return JSON when `LIVEBLOCKS_SECRET_KEY` is missing or Liveblocks calls fail |
 | 2026-08-21 | Added a bottom shape panel so users can drag shapes onto the Liveblocks canvas, with a basic `canvasNode` renderer, per `12-shape-panel.md` |
 | 2026-08-21 | Replaced the placeholder node renderer with CSS/SVG shape variants and a cursor-following shape drag preview per `13-node-shape.md` |
+| 2026-08-21 | Added selected-node resize handles and overlay inline label editing on the Liveblocks canvas per `14-node-editing.md` |
+| 2026-08-21 | Added a floating color toolbar on selected canvas nodes so collaborators can apply predefined fill/text pairs per `15-nodes-color-toolbar.md` |
+| 2026-08-21 | Restored progress-tracker Session Notes to the stack/version inventory (Next.js, shadcn, Clerk, Liveblocks, Prisma) |
+| 2026-08-21 | Added four-side hover handles, a custom smooth-step `canvasEdge` renderer, and inline edge label editing per `16-edge-behavior.md` |
