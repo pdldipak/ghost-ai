@@ -62,9 +62,21 @@ export interface CanvasNodeData extends Record<string, unknown> {
 
 export type CanvasNode = Node<CanvasNodeData, "canvasNode">;
 
-export type CanvasEdge = Edge<Record<string, never>, "canvasEdge">;
+export const NODE_HANDLE_IDS = ["top", "right", "bottom", "left"] as const;
+
+export type NodeHandleId = (typeof NODE_HANDLE_IDS)[number];
+
+export interface CanvasEdgeData extends Record<string, unknown> {
+  label: string;
+}
+
+export type CanvasEdge = Edge<CanvasEdgeData, "canvasEdge">;
 
 export const DEFAULT_EDGE_COLOR = "#f8fafc";
+export const EDGE_STROKE_WIDTH = 1.5;
+export const EDGE_INTERACTION_WIDTH = 24;
+export const EDGE_REST_OPACITY = 0.45;
+export const EDGE_ACTIVE_OPACITY = 1;
 
 export function getNodeTextColor(fill: NodeColorFill): string {
   const match = NODE_COLORS.find((color) => color.fill === fill);

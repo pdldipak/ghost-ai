@@ -1,27 +1,40 @@
 "use client";
 
+import { useCallback } from "react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   ConnectionMode,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
 import { ShapePanel } from "@/components/editor/shape-panel";
 import { useShapeDrop } from "@/hooks/use-shape-drop";
+import {
+  CANVAS_EDGE_STYLE,
+  createCanvasEdge,
+  DEFAULT_CANVAS_EDGE_OPTIONS,
+} from "@/lib/canvas-edges";
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 
 const nodeTypes = {
   canvasNode: CanvasNodeView,
 };
 
+const edgeTypes = {
+  canvasEdge: CanvasEdgeView,
+};
+
 function FlowCanvasInner() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
+  const { nodes, edges, onNodesChange, onEdgesChange, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
       nodes: { initial: [] },
@@ -29,6 +42,18 @@ function FlowCanvasInner() {
     });
 
   const { onDragOver, onDrop } = useShapeDrop(onNodesChange);
+
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      const edge = createCanvasEdge(connection);
+      if (!edge) {
+        return;
+      }
+
+      onEdgesChange([{ type: "add", item: edge }]);
+    },
+    [onEdgesChange],
+  );
 
   return (
     <div
@@ -41,9 +66,13 @@ function FlowCanvasInner() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onConnect={handleConnect}
         onDelete={onDelete}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={DEFAULT_CANVAS_EDGE_OPTIONS}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionLineStyle={CANVAS_EDGE_STYLE}
         connectionMode={ConnectionMode.Loose}
         fitView
         proOptions={{ hideAttribution: true }}

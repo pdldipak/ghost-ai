@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Node color toolbar on selected canvas nodes; ready for next feature unit
+- Foundation — Custom canvas edges with four-side handles and inline labels; ready for next feature unit
 
 ## Current Goal
 
-- Pick up the next feature from `feature-specs/`.
+- Choose the next feature unit after edge behavior.
 
 ## Completed
 
@@ -27,6 +27,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Node shapes (`feature-specs/13-node-shape.md`): `CanvasNodeView` renders CSS shapes (rectangle/pill/circle) and scaling SVG shapes (diamond/hexagon/cylinder) from Liveblocks node data; dragging a shape from the panel shows a ghost preview at the default drop size that follows the cursor and hides on drop or cancel.
 - Node editing (`feature-specs/14-node-editing.md`): selected `canvasNode` nodes show React Flow `NodeResizer` handles (min 48×32, accent-primary on the dark canvas); double-clicking the centered label overlays a textarea that writes `data.label` through `updateNodeData` / Liveblocks, with a faint `Label` placeholder when empty, and editing ends on blur or Escape without dragging or panning the canvas.
 - Node color toolbar (`feature-specs/15-nodes-color-toolbar.md`): selected `canvasNode` nodes show a floating `NodeToolbar` of `NODE_COLORS` swatches above the node; choosing a swatch writes `data.color` through `updateNodeData` / Liveblocks so fill and paired text color update immediately, with `nodrag` / `nopan` so toolbar clicks do not drag or pan.
+- Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
 
 ## In Progress
 
@@ -34,7 +35,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Next feature unit from `feature-specs/` (TBD).
+- Choose the next feature unit after edge behavior.
 
 ## Open Questions
 
@@ -75,7 +76,18 @@ Feature 14:
 - **Inline label editing:** `NodeLabel` keeps the label centered, shows `NODE_LABEL_PLACEHOLDER` when empty, and overlays a textarea in the same position while editing. Label updates call `updateNodeData`, which diffs into Liveblocks `onNodesChange`. Editing closes on blur or Escape; `nodrag` / `nopan` / `nowheel` plus pointer stop keep typing from dragging or panning.
 Feature 15:
 - **Node color toolbar:** Selected nodes show React Flow `NodeToolbar` 12px above the node with one swatch per `NODE_COLORS` pair. Active swatch uses a 1.5px ring of the pair's text color; hover uses a tight 4px glow of the same text color. Swatch clicks call `updateNodeData` with the fill; `getNodeTextColor` derives the paired text color. No server calls. Toolbar uses `nodrag` / `nopan` / `nowheel` plus pointer stop so interactions do not drag nodes or pan the canvas.
+Feature 16:
+- **Connection handles:** Each `canvasNode` exposes source handles on top, right, bottom, and left (`NODE_HANDLE_IDS`). Handles are 8px white dots with a dark `--bg-base` border, hidden until the node is hovered (or a connection is in progress). `ConnectionMode.Loose` lets any handle connect to any other handle.
+- **Custom edges:** New connections are added through Liveblocks `onEdgesChange` as type `canvasEdge` with `data.label`, a light `#f8fafc` rounded stroke, and a closed arrow marker. The renderer uses `getSmoothStepPath` for right-angle routing, dims the stroke at rest, brightens on hover/select, and keeps a wider invisible `interactionWidth` so edges are easier to click without looking thicker.
+- **Inline edge labels:** Double-clicking an edge opens an input at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`. Label text is stored in collaborative `edge.data.label` through `updateEdgeData`; the input grows with a hidden sizer span. No server persistence.
 
 ## Session Notes
 
+- **Next.js & React:** Using Next.js 16.2.9 with React 19.2.4 and Tailwind CSS v4.
+- **shadcn:** shadcn version 4.13.0 was used; it auto-detected Tailwind v4.
+- **lucide-react:** lucide-react ^1.23.0 installed as a direct dependency.
+- **Clerk:** `@clerk/nextjs` ^7.5.16 and `@clerk/ui` ^1.25.2 installed.
+- **Liveblocks:** `@liveblocks/node` installed alongside `@liveblocks/client`, `@liveblocks/react`, `@liveblocks/react-flow`, and `@liveblocks/react-ui` (all 3.23.1). Liveblocks client uses lazy init (`getLiveblocksClient()`) to avoid key validation errors at build time.
+- **Prisma:** Prisma 7.8.0 – generated client goes to `app/generated/prisma/`; import `PrismaClient` from `@/app/generated/prisma/client` (no `index.ts` in v7). Direct Postgres uses `{ adapter }` with `@prisma/adapter-pg`; Accelerate URLs (`prisma+postgress://`) use `{ accelerateUrl }` plus `withAccelerate()`. Client is a lazy proxy so `next build` does not require `DATABASE_URL`.
+- **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.

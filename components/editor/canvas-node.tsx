@@ -1,8 +1,9 @@
 "use client";
 
-import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
+import { NodeResizer, type NodeProps } from "@xyflow/react";
 
 import { NodeColorToolbar } from "@/components/editor/node-color-toolbar";
+import { NodeHandles } from "@/components/editor/node-handles";
 import { NodeLabel } from "@/components/editor/node-label";
 import { NodeShapeVisual } from "@/components/editor/node-shape";
 import {
@@ -19,7 +20,7 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
   const textColor = getNodeTextColor(fill);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="group relative h-full w-full">
       <NodeColorToolbar nodeId={id} activeFill={fill} />
       <NodeResizer
         isVisible={Boolean(selected)}
@@ -37,8 +38,7 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
         label={data.label}
         labelContent={<NodeLabel nodeId={id} label={data.label} />}
       />
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
+      <NodeHandles />
     </div>
   );
 }
