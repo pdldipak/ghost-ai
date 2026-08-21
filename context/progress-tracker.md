@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Shape panel on the collaborative canvas; ready for next feature unit
+- Foundation — Node shapes and shape drag preview on the collaborative canvas; ready for next feature unit
 
 ## Current Goal
 
@@ -24,6 +24,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Liveblocks setup (`feature-specs/10-liveblocks-setup.md`): typed `liveblocks.config.ts` Presence/UserMeta; cached `@liveblocks/node` client and deterministic cursor-color helper in `lib/liveblocks.ts`; `POST /api/liveblocks-auth` verifies Clerk + project access, `getOrCreateRoom` by project ID, and returns a session token with name/avatar/color (`403` when unauthorized).
 - Base canvas (`feature-specs/11-base-canvas.md`): workspace placeholder replaced with `CanvasRoom` (`LiveblocksProvider` + `RoomProvider` + suspense/error fallbacks) and `FlowCanvas` (`useLiveblocksFlow` + React Flow with loose connections, `fitView`, MiniMap, dot background); shared `types/canvas.ts` with `NODE_COLORS`, `canvasNode`/`canvasEdge` types.
 - Shape panel (`feature-specs/12-shape-panel.md`): floating bottom-center pill toolbar with draggable rectangle/diamond/circle/pill/cylinder/hexagon; drop creates `canvasNode` nodes via Liveblocks `onNodesChange`; basic `CanvasNodeView` renderer.
+- Node shapes (`feature-specs/13-node-shape.md`): `CanvasNodeView` renders CSS shapes (rectangle/pill/circle) and scaling SVG shapes (diamond/hexagon/cylinder) from Liveblocks node data; dragging a shape from the panel shows a ghost preview at the default drop size that follows the cursor and hides on drop or cancel.
 
 ## In Progress
 
@@ -64,6 +65,9 @@ Feature 11:
 - **Base canvas:** Client-only `CanvasRoom` wraps workspace canvas with `LiveblocksProvider` (`/api/liveblocks-auth`), `RoomProvider` (room ID = project ID, `initialPresence` `{ cursor: null, isThinking: false }`), `ErrorBoundary`, and `ClientSideSuspense`. `FlowCanvas` syncs empty nodes/edges via `useLiveblocksFlow` (suspense) into React Flow with `ConnectionMode.Loose`, `fitView`, MiniMap, and dotted `Background`. Shared schema in `types/canvas.ts`: `NODE_COLORS`, `CanvasNodeData` (`label`/`color`/`shape`), typed `canvasNode` / `canvasEdge`. No Controls, custom renderers, blob persistence, or AI yet. Workspace page remains a server component.
 Feature 12:
 - **Shape panel:** Floating pill toolbar at the bottom-center of the canvas with draggable shapes (`rectangle`, `diamond`, `circle`, `pill`, `cylinder`, `hexagon`). Drag payload (`SHAPE_DRAG_MIME`) includes shape plus default size from `SHAPE_DEFAULT_SIZES`. Drop on the canvas wrapper converts screen coordinates with `screenToFlowPosition` and adds a Liveblocks-synced node via `onNodesChange({ type: "add" })`. New nodes use type `canvasNode`, empty label, `DEFAULT_NODE_COLOR`, the dragged shape, and IDs `{shape}-{timestamp}-{counter}`. `CanvasNodeView` renders every shape as a bordered rectangle with a centered label; shape-specific visuals are deferred.
+Feature 13:
+- **Node shape rendering:** Shared `NodeShapeVisual` draws rectangle/pill/circle with CSS radius and diamond/hexagon/cylinder with `preserveAspectRatio="none"` SVG so shapes scale with node width/height. Stroke uses `--border-default` at rest and `--accent-primary` when selected (`vector-effect: non-scaling-stroke`). `CanvasNodeView` still reads Liveblocks `canvasNode` data (`shape`, `color`, `label`) and does not change drop/create behavior.
+- **Shape drag preview:** `useShapeDragPreview` hides the native drag ghost and portals a 50% opacity preview of the dragged shape at `SHAPE_DEFAULT_SIZES`, following the cursor until `drop` or `dragend`. Preview is pointer-events-none so canvas drop handling is unchanged.
 
 ## Session Notes
 

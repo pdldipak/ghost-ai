@@ -2,9 +2,10 @@
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 
-import { cn } from "@/lib/utils";
+import { NodeShapeVisual } from "@/components/editor/node-shape";
 import {
   DEFAULT_NODE_COLOR,
+  DEFAULT_NODE_SHAPE,
   getNodeTextColor,
   type CanvasNode,
 } from "@/types/canvas";
@@ -14,14 +15,14 @@ export function CanvasNodeView({ data, selected }: NodeProps<CanvasNode>) {
   const textColor = getNodeTextColor(fill);
 
   return (
-    <div
-      className={cn(
-        "flex h-full w-full items-center justify-center rounded-xl border px-3 py-2 text-center text-sm",
-        selected ? "border-brand" : "border-surface-border",
-      )}
-      style={{ backgroundColor: fill, color: textColor }}
-    >
-      <span className="truncate">{data.label}</span>
+    <div className="relative h-full w-full">
+      <NodeShapeVisual
+        shape={data.shape ?? DEFAULT_NODE_SHAPE}
+        fill={fill}
+        textColor={textColor}
+        selected={Boolean(selected)}
+        label={data.label}
+      />
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
     </div>

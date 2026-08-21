@@ -1,14 +1,9 @@
 "use client";
 
-import type { DragEvent } from "react";
-
-import { getShapeDragPayload } from "@/lib/canvas-nodes";
+import { ShapeDragPreview } from "@/components/editor/shape-drag-preview";
+import { useShapeDragPreview } from "@/hooks/use-shape-drag-preview";
 import { cn } from "@/lib/utils";
-import {
-  NODE_SHAPES,
-  SHAPE_DRAG_MIME,
-  type NodeShape,
-} from "@/types/canvas";
+import { NODE_SHAPES, type NodeShape } from "@/types/canvas";
 
 const SHAPE_LABELS: Record<NodeShape, string> = {
   rectangle: "Rectangle",
@@ -106,42 +101,38 @@ function ShapeIcon({ shape }: { shape: NodeShape }) {
   }
 }
 
-function handleShapeDragStart(
-  event: DragEvent<HTMLButtonElement>,
-  shape: NodeShape,
-) {
-  const payload = getShapeDragPayload(shape);
-  event.dataTransfer.setData(SHAPE_DRAG_MIME, JSON.stringify(payload));
-  event.dataTransfer.effectAllowed = "move";
-}
-
 export function ShapePanel() {
+  const { payload, previewRef, onShapeDragStart } = useShapeDragPreview();
+
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
-      <div
-        className="pointer-events-auto flex items-center gap-1 rounded-full border border-surface-border bg-surface px-2 py-1.5"
-        role="toolbar"
-        aria-label="Canvas shapes"
-      >
-        {NODE_SHAPES.map((shape) => (
-          <button
-            key={shape}
-            type="button"
-            draggable
-            aria-label={`Add ${SHAPE_LABELS[shape]}`}
-            title={SHAPE_LABELS[shape]}
-            onDragStart={(event) => handleShapeDragStart(event, shape)}
-            className={cn(
-              "flex size-8 items-center justify-center rounded-full text-copy-muted transition-colors",
-              "hover:bg-elevated hover:text-copy",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50",
-              "cursor-grab active:cursor-grabbing",
-            )}
-          >
-            <ShapeIcon shape={shape} />
-          </button>
-        ))}
+    <>
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
+        <div
+          className="pointer-events-auto flex items-center gap-1 rounded-full border border-surface-border bg-surface px-2 py-1.5"
+          role="toolbar"
+          aria-label="Canvas shapes"
+        >
+          {NODE_SHAPES.map((shape) => (
+            <button
+              key={shape}
+              type="button"
+              draggable
+              aria-label={`Add ${SHAPE_LABELS[shape]}`}
+              title={SHAPE_LABELS[shape]}
+              onDragStart={(event) => onShapeDragStart(event, shape)}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-full text-copy-muted transition-colors",
+                "hover:bg-elevated hover:text-copy",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50",
+                "cursor-grab active:cursor-grabbing",
+              )}
+            >
+              <ShapeIcon shape={shape} />
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+      <ShapeDragPreview payload={payload} previewRef={previewRef} />
+    </>
   );
 }
