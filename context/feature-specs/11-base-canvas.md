@@ -51,4 +51,4 @@ Also defined the custom node and edge types:
 - Client canvas wrapper sets up the Liveblocks room.
 - React Flow uses Liveblocks-synced nodes and edges.
 - Shared canvas types exists in `types/canvas.ts`
-- make sure `npm ci`, `npm run lint` and `npm run build` passes
+- Make sure `npm ci`, `npm run lint` and `npm run build` passes

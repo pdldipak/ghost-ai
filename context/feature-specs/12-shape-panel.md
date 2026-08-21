@@ -41,4 +41,4 @@ Add a bottom shape panel so users can drag shapes onto the canvas and create new
 - Shape drag payload includes the correct shape and size data.
 - Drop logic creates new canvas nodes with the expected shape data.
 - New nodes use the custom canvas node type. 
-- make sure `npm ci`, `npm run lint` and `npm run build` passes
+- Make sure `npm ci`, `npm run lint` and `npm run build` passes
