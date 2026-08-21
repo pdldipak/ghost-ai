@@ -41,6 +41,11 @@ export const SHAPE_DEFAULT_SIZES: Record<
   hexagon: { width: 140, height: 120 },
 };
 
+export const NODE_MIN_WIDTH = 48;
+export const NODE_MIN_HEIGHT = 32;
+
+export const NODE_LABEL_PLACEHOLDER = "Label";
+
 export const SHAPE_DRAG_MIME = "application/ghost-shape";
 
 export interface ShapeDragPayload {
