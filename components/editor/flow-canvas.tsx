@@ -7,12 +7,20 @@ import {
   ConnectionMode,
   MiniMap,
   ReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { CanvasNodeView } from "@/components/editor/canvas-node";
+import { ShapePanel } from "@/components/editor/shape-panel";
+import { useShapeDrop } from "@/hooks/use-shape-drop";
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 
-export function FlowCanvas() {
+const nodeTypes = {
+  canvasNode: CanvasNodeView,
+};
+
+function FlowCanvasInner() {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -20,8 +28,14 @@ export function FlowCanvas() {
       edges: { initial: [] },
     });
 
+  const { onDragOver, onDrop } = useShapeDrop(onNodesChange);
+
   return (
-    <div className="relative min-h-0 flex-1 bg-base">
+    <div
+      className="relative min-h-0 flex-1 bg-base"
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -29,6 +43,7 @@ export function FlowCanvas() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDelete={onDelete}
+        nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
         proOptions={{ hideAttribution: true }}
@@ -48,6 +63,15 @@ export function FlowCanvas() {
           nodeColor="var(--accent-primary)"
         />
       </ReactFlow>
+      <ShapePanel />
     </div>
+  );
+}
+
+export function FlowCanvas() {
+  return (
+    <ReactFlowProvider>
+      <FlowCanvasInner />
+    </ReactFlowProvider>
   );
 }

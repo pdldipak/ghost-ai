@@ -60,7 +60,10 @@ Radius increases with surface depth - smaller for inner elements, larger for out
 | `#0F2E18`              | `#3DD68C`              | `Green`             |
 | `#062822`              | `#0AC7B4`              | `Teal`              |
 
-Default node color: `#1F1F1F` with `#EDEDED` text. 
+Default node color: `#1F1F1F` with `#EDEDED` text.
+
+### Node Shapes
+Six variants: rectangle, pill, and circle use CSS (`rounded-xl` / `rounded-full`); diamond, hexagon, and cylinder use SVG that scales with node size. Borders stay subtle at rest (`border-surface-border` / `--border-default`) and brighten to `--accent-primary` when selected. 
 
 ## Edge Style
 Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke width is thin - edges are visually secondary to nodes. 
