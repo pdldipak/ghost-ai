@@ -17,12 +17,15 @@ import "@xyflow/react/dist/style.css";
 import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
+import { LiveCursors } from "@/components/editor/live-cursors";
+import { PresenceAvatars } from "@/components/editor/presence-avatars";
 import { ShapePanel } from "@/components/editor/shape-panel";
 import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal";
 import {
   cloneCanvasTemplate,
   type CanvasTemplate,
 } from "@/components/editor/starter-templates";
+import { useCursorPresence } from "@/hooks/use-cursor-presence";
 import { CANVAS_ZOOM_DURATION_MS } from "@/hooks/use-keyboard-shortcuts";
 import { useShapeDrop } from "@/hooks/use-shape-drop";
 import {
@@ -58,6 +61,7 @@ function FlowCanvasInner({
     });
 
   const { onDragOver, onDrop } = useShapeDrop(onNodesChange);
+  const { onPointerMove, onPointerLeave } = useCursorPresence();
 
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -121,6 +125,8 @@ function FlowCanvasInner({
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         onDelete={onDelete}
+        onPointerMove={onPointerMove}
+        onPointerLeave={onPointerLeave}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={DEFAULT_CANVAS_EDGE_OPTIONS}
@@ -137,7 +143,9 @@ function FlowCanvasInner({
           size={1}
           color="var(--border-subtle)"
         />
+        <LiveCursors />
       </ReactFlow>
+      <PresenceAvatars />
       <CanvasControlBar />
       <ShapePanel />
       <StarterTemplatesModal

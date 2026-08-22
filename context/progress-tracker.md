@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Starter template library imported into the Liveblocks canvas; ready for next feature unit
+- Foundation — live presence avatars and cursors on the canvas; ready for next feature unit
 
 ## Current Goal
 
-- Choose the next feature unit after starter templates.
+- Choose the next feature unit after presence avatars and cursors.
 
 ## Completed
 
@@ -30,6 +30,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
 - Canvas ergonomics (`feature-specs/17-canvas-ergonomics.md`): bottom-left pill control bar with zoom out/fit view/zoom in (animated React Flow viewport) and Liveblocks undo/redo (dimmed when empty); `useKeyboardShortcuts` handles `+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y while skipping editable fields; MiniMap removed.
 - Starter templates (`feature-specs/18-starter-template.md`): static `CANVAS_TEMPLATES` library (microservices, CI/CD pipeline, event-driven) in `starter-templates.ts`; workspace navbar Templates button opens `StarterTemplatesModal` with a scrollable card grid, lightweight SVG previews, and Import; import replaces the Liveblocks room graph via `onNodesChange` / `onEdgesChange` and fits the view.
+- Presence avatars and cursors (`feature-specs/19-presence-avatars-cursor.md`): workspace canvas shows a top-right collaborator avatar stack (photo or initials, max five, +N overflow) plus Clerk `UserButton`; navbar `UserButton` stays on editor home only; other users get live cursors from presence `cursor` in flow coordinates; current user (including extra tabs) is excluded from both avatars and cursors.
 
 ## In Progress
 
@@ -37,7 +38,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after starter templates.
+- Choose the next feature unit after presence avatars and cursors.
 
 ## Open Questions
 
@@ -88,6 +89,9 @@ Feature 17:
 Feature 18:
 - **Starter templates:** Curated static snapshots live in `components/editor/starter-templates.ts` as `CanvasTemplate` + `CANVAS_TEMPLATES` (at least microservices, CI/CD pipeline, and event-driven). Nodes/edges use the shared `canvasNode` / `canvasEdge` schema and `NODE_COLORS` palette. No APIs, database models, blob persistence, template authoring, or import-on-create.
 - **Import UX:** A Templates button in the workspace navbar (next to Share) opens `StarterTemplatesModal` via `EditorDialog`. Cards show a lightweight SVG preview (bounds from node positions, lines between centers, shape/color rendering, no React Flow instance), name, description, and Import. Import replaces the active Liveblocks graph through `onNodesChange` / `onEdgesChange`, closes the modal, and fits the canvas to the imported diagram.
+Feature 19:
+- **Presence avatars:** Canvas-only overlay at the top-right of the editor canvas pane. Collaborator avatars come from Liveblocks `useOthersMapped` + `UserMeta.info` (name/avatar/color), unique by user ID, excluding the current Clerk user and that user's extra tabs. Up to five overlapping avatars, then a display-only +N chip. The Clerk `UserButton` sits in the same group, separated by a divider when at least one collaborator is present. Workspace navbar hides `UserButton` so it is not duplicated; editor home navbar is unchanged.
+- **Live cursors:** Presence `cursor` is updated from React Flow pointer move via `screenToFlowPosition` and cleared on leave. Other connections render a colored pointer and name badge inside `ViewportPortal` so they follow pan/zoom; the current user never sees their own cursor. Presence types stay `cursor` and `isThinking`; `isThinking` is unused in this feature.
 
 ## Session Notes
 

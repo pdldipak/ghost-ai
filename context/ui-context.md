@@ -73,5 +73,7 @@ Connection handles sit on the top, right, bottom, and left of every node as smal
 Custom `canvasEdge` renderer with smooth-step (right-angle) routing, a light `#f8fafc` stroke, rounded caps, and a closed arrowhead. Edges stay slightly dimmed at rest and brighten when hovered or selected. An invisible wider hit path makes them easier to click without thickening the visible stroke. Double-clicking an edge opens an inline label editor at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`; the input grows with the text.
 
 ## Canvas Controls
-A pill-shaped control bar sits at the bottom-left of the canvas, above the shape panel. Zoom out, fit view, and zoom in animate the React Flow viewport. Undo and redo use Liveblocks history and dim when unavailable. Keyboard shortcuts (`+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, Cmd/Ctrl+Y) are ignored while typing in editable fields. There is no minimap. 
+A pill-shaped control bar sits at the bottom-left of the canvas, above the shape panel. Zoom out, fit view, and zoom in animate the React Flow viewport. Undo and redo use Liveblocks history and dim when unavailable. Keyboard shortcuts (`+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, Cmd/Ctrl+Y) are ignored while typing in editable fields. There is no minimap.
+
+A display-only collaborator avatar stack sits at the top-right of the canvas pane, with the Clerk UserButton in the same group. Other participants' cursors appear on the canvas as a colored pointer with a name badge.
 

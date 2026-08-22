@@ -64,3 +64,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-21 | Added four-side hover handles, a custom smooth-step `canvasEdge` renderer, and inline edge label editing per `16-edge-behavior.md` |
 | 2026-08-22 | Added a bottom-left canvas control bar for zoom and Liveblocks undo/redo, wired keyboard shortcuts, and removed the MiniMap per `17-canvas-ergonomics.md` |
 | 2026-08-22 | Added a starter template library with navbar import into the active Liveblocks canvas per `18-starter-template.md` |
+| 2026-08-22 | Added canvas presence avatars and live cursors, keeping the Clerk UserButton on editor home and in the workspace canvas group per `19-presence-avatars-cursor.md` |

@@ -93,7 +93,7 @@ export function EditorNavbar({
             </Button>
           </>
         ) : null}
-        <UserButton />
+        {isWorkspace ? null : <UserButton />}
       </div>
     </header>
   );
