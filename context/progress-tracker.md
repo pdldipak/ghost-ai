@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Custom canvas edges with four-side handles and inline labels; ready for next feature unit
+- Foundation — Canvas zoom/history control bar and keyboard shortcuts; ready for next feature unit
 
 ## Current Goal
 
-- Choose the next feature unit after edge behavior.
+- Choose the next feature unit after canvas ergonomics.
 
 ## Completed
 
@@ -28,6 +28,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Node editing (`feature-specs/14-node-editing.md`): selected `canvasNode` nodes show React Flow `NodeResizer` handles (min 48×32, accent-primary on the dark canvas); double-clicking the centered label overlays a textarea that writes `data.label` through `updateNodeData` / Liveblocks, with a faint `Label` placeholder when empty, and editing ends on blur or Escape without dragging or panning the canvas.
 - Node color toolbar (`feature-specs/15-nodes-color-toolbar.md`): selected `canvasNode` nodes show a floating `NodeToolbar` of `NODE_COLORS` swatches above the node; choosing a swatch writes `data.color` through `updateNodeData` / Liveblocks so fill and paired text color update immediately, with `nodrag` / `nopan` so toolbar clicks do not drag or pan.
 - Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
+- Canvas ergonomics (`feature-specs/17-canvas-ergonomics.md`): bottom-left pill control bar with zoom out/fit view/zoom in (animated React Flow viewport) and Liveblocks undo/redo (dimmed when empty); `useKeyboardShortcuts` handles `+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y while skipping editable fields; MiniMap removed.
 
 ## In Progress
 
@@ -35,7 +36,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after edge behavior.
+- Choose the next feature unit after canvas ergonomics.
 
 ## Open Questions
 
@@ -80,6 +81,9 @@ Feature 16:
 - **Connection handles:** Each `canvasNode` exposes source handles on top, right, bottom, and left (`NODE_HANDLE_IDS`). Handles are 8px white dots with a dark `--bg-base` border, hidden until the node is hovered (or a connection is in progress). `ConnectionMode.Loose` lets any handle connect to any other handle.
 - **Custom edges:** New connections are added through Liveblocks `onEdgesChange` as type `canvasEdge` with `data.label`, a light `#f8fafc` rounded stroke, and a closed arrow marker. The renderer uses `getSmoothStepPath` for right-angle routing, dims the stroke at rest, brightens on hover/select, and keeps a wider invisible `interactionWidth` so edges are easier to click without looking thicker.
 - **Inline edge labels:** Double-clicking an edge opens an input at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`. Label text is stored in collaborative `edge.data.label` through `updateEdgeData`; the input grows with a hidden sizer span. No server persistence.
+Feature 17:
+- **Canvas control bar:** Floating pill at the bottom-left of the canvas (`z-20`, above the shape panel) with zoom out / fit view / zoom in and undo / redo, separated by a thin divider. Zoom calls `zoomIn` / `zoomOut` / `fitView` on the React Flow instance with a 200ms duration. Undo/redo use Liveblocks `useUndo` / `useRedo` / `useCanUndo` / `useCanRedo`; disabled buttons stay dimmed.
+- **Keyboard shortcuts:** `hooks/use-keyboard-shortcuts.ts` listens on `window` and skips `input`, `textarea`, `select`, and contenteditable targets. `+`/`=` zoom in, `-` zooms out, Cmd/Ctrl+Z undoes, Cmd/Ctrl+Shift+Z and Cmd/Ctrl+Y redo. MiniMap is no longer rendered.
 
 ## Session Notes
 

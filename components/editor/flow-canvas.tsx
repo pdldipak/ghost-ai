@@ -7,13 +7,13 @@ import {
   BackgroundVariant,
   ConnectionLineType,
   ConnectionMode,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
 import { ShapePanel } from "@/components/editor/shape-panel";
@@ -84,14 +84,8 @@ function FlowCanvasInner() {
           size={1}
           color="var(--border-subtle)"
         />
-        <MiniMap
-          pannable
-          zoomable
-          className="!rounded-xl !border !border-surface-border !bg-surface"
-          maskColor="rgba(8, 8, 9, 0.7)"
-          nodeColor="var(--accent-primary)"
-        />
       </ReactFlow>
+      <CanvasControlBar />
       <ShapePanel />
     </div>
   );
