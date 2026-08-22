@@ -1,6 +1,6 @@
 # Ghost Assistant
 
-Real-time collaborative system design workspace. Requires **Node.js `>=22.12.0`**.
+Real-time collaborative system design workspace. Requires **Node.js 22** (`>=22.12.0 <23`, npm 10) — the same runtime used by CI, Docker, and the lockfile since Clerk was added.
 
 ```bash
 npm install
@@ -82,7 +82,7 @@ docker compose up --build
 docker compose --profile dev up app-dev
 ```
 
-Requires Node 22+ and `.env.local` for Clerk. Run npm/Prisma **inside the container** when using Docker dev (see [Prisma](#prisma)).
+Requires Node 22 (`>=22.12.0 <23`, npm 10) and `.env.local` for Clerk. Run npm/Prisma **inside the container** when using Docker dev (see [Prisma](#prisma)). Use `nvm use` (reads `.nvmrc`) so local installs do not rewrite the lockfile with Node 24 / npm 11.
 
 ## Prisma
 

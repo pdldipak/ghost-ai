@@ -4,6 +4,7 @@
 
 | Layer     | Technology              | Role |
 |-----------|------------------------|------|
+| Runtime   | Node.js 22 (npm 10) | App, CI, Docker, and `package-lock.json` generation (`>=22.12.0 <23`) |
 | Framework | Next.js 16+ TypeScript | Full-stack app with server/client boundaries |
 | UI        | Tailwind + shadcn/ui   | Component composition and styling |
 | Auth      | Clerk                  | User identity and route protection |

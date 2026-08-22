@@ -123,3 +123,4 @@ Feature 23:
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
 - **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

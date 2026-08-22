@@ -72,3 +72,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-22 | Fixed canvas save failures on private Blob stores and made the navbar Save control force-upload and show saving/saved/error |
 | 2026-08-22 | Centered shape-panel drops on the cursor, stopped first-drop auto-zoom by removing React Flow `fitView`, and allowed `img.clerk.com` in `next.config.ts` per `22-delete-nodes-edge.md` |
 | 2026-08-22 | Added user-selectable background themes (CSS variable palettes, localStorage persistence, navbar appearance panel, custom page background) per `23-user-selectable-bg.md` |
+| 2026-08-22 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 |
+| 2026-08-22 | Pinned the project to Node 22 / npm 10 (`.nvmrc`, engines, CI) to match Docker and the Clerk-era runtime |
