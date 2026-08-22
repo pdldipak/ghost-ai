@@ -71,3 +71,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-22 | Added canvas autosave and restore via Vercel Blob, `canvasJsonPath` URL storage, and a workspace navbar Save status per `21-canvas-autosave.md` |
 | 2026-08-22 | Fixed canvas save failures on private Blob stores and made the navbar Save control force-upload and show saving/saved/error |
 | 2026-08-22 | Centered shape-panel drops on the cursor, stopped first-drop auto-zoom by removing React Flow `fitView`, and allowed `img.clerk.com` in `next.config.ts` per `22-delete-nodes-edge.md` |
+| 2026-08-22 | Added user-selectable background themes (CSS variable palettes, localStorage persistence, navbar appearance panel, custom page background) per `23-user-selectable-bg.md` |

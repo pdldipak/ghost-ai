@@ -69,8 +69,11 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  /* Project tokens (dark-only) */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Default dark workspace — keep these values identical to the original theme */
   --bg-base: #080809;
   --bg-surface: #111114;
   --bg-elevated: #18181c;
@@ -88,8 +91,102 @@
   --state-error: #ff4d4f;
   --state-success: #34d399;
   --state-warning: #fbbf24;
+}
 
-  /* shadcn semantic tokens mapped to project dark theme */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #f4f4f6;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ececef;
+  --border: #e2e2e8;
+  --border-default: #d8d8e0;
+  --border-subtle: #c8c8d2;
+  --text-primary: #18181c;
+  --text-secondary: #3a3a44;
+  --text-muted: #6a6a78;
+  --text-faint: #9a9aa8;
+  --accent-primary: #0891a0;
+  --accent-primary-dim: rgba(8, 145, 160, 0.12);
+  --accent-ai: #5b4ee8;
+  --accent-ai-text: #4f46e5;
+  --state-error: #dc2626;
+  --state-success: #059669;
+  --state-warning: #d97706;
+}
+
+[data-theme="midnight"] {
+  color-scheme: dark;
+
+  --bg-base: #0b1020;
+  --bg-surface: #12182b;
+  --bg-elevated: #1a2238;
+  --border: #2a3550;
+  --border-default: #2e3a58;
+  --border-subtle: #3d4c6e;
+  --text-primary: #e8eefc;
+  --text-secondary: #b4c0dc;
+  --text-muted: #7a88a8;
+  --text-faint: #4e5c7a;
+  --accent-primary: #60a5fa;
+  --accent-primary-dim: rgba(96, 165, 250, 0.14);
+  --accent-ai: #818cf8;
+  --accent-ai-text: #a5b4fc;
+  --state-error: #f87171;
+  --state-success: #34d399;
+  --state-warning: #fbbf24;
+}
+
+[data-theme="ocean"] {
+  color-scheme: dark;
+
+  --bg-base: #061418;
+  --bg-surface: #0c1f26;
+  --bg-elevated: #122a33;
+  --border: #1e3d48;
+  --border-default: #234650;
+  --border-subtle: #2f5a66;
+  --text-primary: #e6f6f8;
+  --text-secondary: #b0d4da;
+  --text-muted: #6a9aa4;
+  --text-faint: #3d6a74;
+  --accent-primary: #22d3ee;
+  --accent-primary-dim: rgba(34, 211, 238, 0.14);
+  --accent-ai: #38bdf8;
+  --accent-ai-text: #7dd3fc;
+  --state-error: #fb7185;
+  --state-success: #2dd4bf;
+  --state-warning: #fbbf24;
+}
+
+[data-theme="forest"] {
+  color-scheme: dark;
+
+  --bg-base: #0a120e;
+  --bg-surface: #121c16;
+  --bg-elevated: #1a2620;
+  --border: #2a3a30;
+  --border-default: #2e4036;
+  --border-subtle: #3c5446;
+  --text-primary: #e8f0ea;
+  --text-secondary: #b8c8bc;
+  --text-muted: #7a9080;
+  --text-faint: #4e6456;
+  --accent-primary: #34d399;
+  --accent-primary-dim: rgba(52, 211, 153, 0.14);
+  --accent-ai: #6ee7b7;
+  --accent-ai-text: #a7f3d0;
+  --state-error: #f87171;
+  --state-success: #4ade80;
+  --state-warning: #fbbf24;
+}
+
+:root {
+  /* Ink on accent buttons stays independent of --bg-base so a custom page
+     background cannot wash out primary / sidebar primary text. */
+  --accent-contrast: #080809;
+
+  /* shadcn semantic tokens mapped to project theme tokens */
   --radius: 0.625rem;
   --background: var(--bg-base);
   --foreground: var(--text-primary);
@@ -98,7 +195,7 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: var(--bg-base);
+  --primary-foreground: var(--accent-contrast);
   --secondary: var(--bg-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-elevated);
@@ -115,7 +212,7 @@
   --sidebar: var(--bg-surface);
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent-primary);
-  --sidebar-primary-foreground: var(--bg-base);
+  --sidebar-primary-foreground: var(--accent-contrast);
   --sidebar-accent: var(--bg-elevated);
   --sidebar-accent-foreground: var(--text-secondary);
   --sidebar-border: var(--border-default);
@@ -130,7 +227,7 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: var(--bg-base);
+  --primary-foreground: var(--accent-contrast);
   --secondary: var(--bg-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-elevated);
@@ -147,7 +244,7 @@
   --sidebar: var(--bg-surface);
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent-primary);
-  --sidebar-primary-foreground: var(--bg-base);
+  --sidebar-primary-foreground: var(--accent-contrast);
   --sidebar-accent: var(--bg-elevated);
   --sidebar-accent-foreground: var(--text-secondary);
   --sidebar-border: var(--border-default);

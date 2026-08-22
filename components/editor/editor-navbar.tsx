@@ -11,6 +11,7 @@ import {
   Share2,
 } from "lucide-react";
 
+import { ThemeSelector } from "@/components/theme/theme-selector";
 import { Button } from "@/components/ui/button";
 import type { CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 import { cn } from "@/lib/utils";
@@ -124,6 +125,7 @@ export function EditorNavbar({
             </Button>
           </>
         ) : null}
+        <ThemeSelector />
         {isWorkspace ? null : <UserButton />}
       </div>
     </header>

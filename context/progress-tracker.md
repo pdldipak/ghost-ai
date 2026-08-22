@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — canvas interaction bugfixes in the workspace
+- Foundation — user-selectable background themes
 
 ## Current Goal
 
-- Choose the next feature unit after canvas interaction bugfixes.
+- Choose the next feature unit after user-selectable backgrounds.
 
 ## Completed
 
@@ -34,6 +34,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - AI sidebar shell (`feature-specs/20-ai-sidebar-shell.md`): workspace `AiSidebarPlaceholder` extracted to `components/editor/ai-sidebar.tsx`; parent-owned open/close kept; floating right overlay slides like `ProjectSidebar`; header, Architect/Specs tabs, local chat empty/demo thread, and a visual-only spec card; no backend, Liveblocks, or AI generation.
 - Canvas autosave (`feature-specs/21-canvas-autosave.md`): `@vercel/blob` installed; `PUT`/`GET` `/api/projects/[projectId]/canvas` upload nodes/edges to `canvas/{projectId}.json` and store the blob URL on `canvasJsonPath`; empty Liveblocks rooms restore once from blob; `useCanvasAutosave` debounce-saves at 1500ms; workspace navbar Save control shows idle/saving/saved/error.
 - Canvas interaction bugfixes (`feature-specs/22-delete-nodes-edge.md`): shape-panel drops center the node on the cursor; React Flow boolean `fitView` removed so the first drop does not auto-zoom (non-empty rooms still fit once on init; restore/import/Fit button unchanged); `img.clerk.com` allowed via `next.config.ts` `images.remotePatterns`. Delete, four-side handles, and workspace navbar `UserButton` hiding were already in place.
+- User-selectable backgrounds (`feature-specs/23-user-selectable-bg.md`): CSS variable themes (`dark`, `light`, `midnight`, `ocean`, `forest`) with Dark as the default; `ThemeProvider` + localStorage persistence; icon-only navbar appearance panel with theme previews and a custom `--bg-base` color; canvas `NODE_COLORS` and edge strokes unchanged.
 
 ## In Progress
 
@@ -41,7 +42,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after canvas interaction bugfixes.
+- Choose the next feature unit after user-selectable backgrounds.
 
 ## Open Questions
 
@@ -105,6 +106,11 @@ Feature 22:
 - **Drop centering:** Shape-panel drops convert the cursor with `screenToFlowPosition`, then subtract half of the payload width/height so React Flow `position` (top-left) places the node center on the cursor.
 - **No drop fitView:** The React Flow `fitView` boolean is removed so the first dropped node does not zoom the viewport. Non-empty rooms fit once in `onInit`. Blob restore, template import, and the control-bar Fit button still call `fitView` explicitly.
 - **Clerk images:** `next.config.ts` `images.remotePatterns` allows `https` `img.clerk.com`. Delete, four-side handles, and hiding the workspace navbar `UserButton` were already implemented and left unchanged.
+Feature 23:
+- **Theme tokens:** Semantic project tokens stay in `globals.css` and `@theme inline`. `data-theme` on `<html>` swaps token values for `dark` (default), `light`, `midnight`, `ocean`, and `forest`. The existing Dark palette is unchanged. The `.dark` class remains on `<html>` so shadcn `dark:` utilities do not apply the default light palette.
+- **Persistence:** `ThemeProvider` reads/writes `localStorage` (`ghost-ai-theme`, `ghost-ai-custom-bg`). A bootstrap script in the root layout applies the stored theme before paint. Custom color sets only `--bg-base` as an inline style so surfaces, text, borders, and accents keep the active theme.
+- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` and edge stroke colors stay independent of the UI theme.
+- **Accent contrast:** `--primary-foreground` and `--sidebar-primary-foreground` map to `--accent-contrast` (`#080809`) instead of `--bg-base` so a custom page background cannot wash out accent-button text. Default Dark appearance is unchanged.
 
 ## Session Notes
 
