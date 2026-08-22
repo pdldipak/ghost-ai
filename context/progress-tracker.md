@@ -109,7 +109,7 @@ Feature 22:
 Feature 23:
 - **Theme tokens:** Semantic project tokens stay in `globals.css` and `@theme inline`. `data-theme` on `<html>` swaps token values for `dark` (default), `light`, `midnight`, `ocean`, and `forest`. The existing Dark palette is unchanged. The `.dark` class remains on `<html>` so shadcn `dark:` utilities do not apply the default light palette.
 - **Persistence:** `ThemeProvider` reads/writes `localStorage` (`ghost-ai-theme`, `ghost-ai-custom-bg`). A bootstrap script in the root layout applies the stored theme before paint. Custom color sets only `--bg-base` as an inline style so surfaces, text, borders, and accents keep the active theme.
-- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` and edge stroke colors stay independent of the UI theme.
+- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` stay independent of the UI theme. Connector strokes use `--canvas-edge` (light on dark themes, dark on Light / light custom `--bg-base`) so they stay visible when the page background changes.
 - **Accent contrast:** `--primary-foreground` and `--sidebar-primary-foreground` map to `--accent-contrast` (`#080809`) instead of `--bg-base` so a custom page background cannot wash out accent-button text. Default Dark appearance is unchanged.
 
 ## Session Notes

@@ -91,6 +91,7 @@
   --state-error: #ff4d4f;
   --state-success: #34d399;
   --state-warning: #fbbf24;
+  --canvas-edge: #f8fafc;
 }
 
 [data-theme="light"] {
@@ -113,6 +114,7 @@
   --state-error: #dc2626;
   --state-success: #059669;
   --state-warning: #d97706;
+  --canvas-edge: #18181c;
 }
 
 [data-theme="midnight"] {
@@ -135,6 +137,7 @@
   --state-error: #f87171;
   --state-success: #34d399;
   --state-warning: #fbbf24;
+  --canvas-edge: #f8fafc;
 }
 
 [data-theme="ocean"] {
@@ -157,6 +160,7 @@
   --state-error: #fb7185;
   --state-success: #2dd4bf;
   --state-warning: #fbbf24;
+  --canvas-edge: #f8fafc;
 }
 
 [data-theme="forest"] {
@@ -179,6 +183,7 @@
   --state-error: #f87171;
   --state-success: #4ade80;
   --state-warning: #fbbf24;
+  --canvas-edge: #f8fafc;
 }
 
 :root {
@@ -262,5 +267,17 @@
 
   html {
     @apply font-sans;
+  }
+
+  .react-flow__edge-path,
+  .react-flow__connection-path {
+    stroke: var(--canvas-edge) !important;
+  }
+
+  .react-flow marker path,
+  .react-flow marker polygon,
+  .react-flow marker polyline {
+    fill: var(--canvas-edge) !important;
+    stroke: var(--canvas-edge) !important;
   }
 }

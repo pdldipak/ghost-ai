@@ -74,14 +74,14 @@ Connection handles sit on the top, right, bottom, and left of every node as smal
 Dropping a shape from the panel places the new node with its center on the cursor. The viewport does not auto-zoom when the first node is dropped.
 
 ## Edge Style
-Custom `canvasEdge` renderer with smooth-step (right-angle) routing, a light `#f8fafc` stroke, rounded caps, and a closed arrowhead. Edges stay slightly dimmed at rest and brighten when hovered or selected. An invisible wider hit path makes them easier to click without thickening the visible stroke. Double-clicking an edge opens an inline label editor at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`; the input grows with the text.
+Custom `canvasEdge` renderer with smooth-step (right-angle) routing, a theme-aware `--canvas-edge` stroke, rounded caps, and a closed arrowhead. Dark themes keep the original light `#f8fafc` stroke; Light uses `#18181c`. A custom page background picks the contrasting stroke from the background luminance so connectors stay visible. Edges stay slightly dimmed at rest and brighten when hovered or selected. An invisible wider hit path makes them easier to click without thickening the visible stroke. Double-clicking an edge opens an inline label editor at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`; the input grows with the text.
 
 ## Canvas Controls
 A pill-shaped control bar sits at the bottom-left of the canvas, above the shape panel. Zoom out, fit view, and zoom in animate the React Flow viewport. Undo and redo use Liveblocks history and dim when unavailable. Keyboard shortcuts (`+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, Cmd/Ctrl+Y) are ignored while typing in editable fields. There is no minimap.
 
 The workspace navbar includes a Save control to the left of Templates. It shows idle (`Save`), saving, saved, and error states using `text-copy-muted`, `text-state-success`, and `text-state-error`.
 
-An icon-only appearance control sits at the far right of the editor navbar (before the home `UserButton`). It opens a compact panel of theme previews and a custom page-background color picker. Canvas node fills, node text colors, and edge strokes stay on `NODE_COLORS` / `DEFAULT_EDGE_COLOR` and do not follow the UI theme.
+An icon-only appearance control sits at the far right of the editor navbar (before the home `UserButton`). It opens a compact panel of theme previews and a custom page-background color picker. Canvas node fills and node text colors stay on `NODE_COLORS`. Connector strokes use `--canvas-edge` so they remain visible on light themes and custom page backgrounds.
 
 A display-only collaborator avatar stack sits at the top-right of the canvas pane, with the Clerk UserButton in the same group. Other participants' cursors appear on the canvas as a colored pointer with a name badge.
 
