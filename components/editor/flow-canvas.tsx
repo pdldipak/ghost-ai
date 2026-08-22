@@ -7,16 +7,23 @@ import {
   BackgroundVariant,
   ConnectionLineType,
   ConnectionMode,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   type Connection,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
 import { ShapePanel } from "@/components/editor/shape-panel";
+import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal";
+import {
+  cloneCanvasTemplate,
+  type CanvasTemplate,
+} from "@/components/editor/starter-templates";
+import { CANVAS_ZOOM_DURATION_MS } from "@/hooks/use-keyboard-shortcuts";
 import { useShapeDrop } from "@/hooks/use-shape-drop";
 import {
   CANVAS_EDGE_STYLE,
@@ -33,7 +40,16 @@ const edgeTypes = {
   canvasEdge: CanvasEdgeView,
 };
 
-function FlowCanvasInner() {
+interface FlowCanvasInnerProps {
+  templatesOpen: boolean;
+  onTemplatesOpenChange: (open: boolean) => void;
+}
+
+function FlowCanvasInner({
+  templatesOpen,
+  onTemplatesOpenChange,
+}: FlowCanvasInnerProps) {
+  const reactFlow = useReactFlow();
   const { nodes, edges, onNodesChange, onEdgesChange, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -53,6 +69,43 @@ function FlowCanvasInner() {
       onEdgesChange([{ type: "add", item: edge }]);
     },
     [onEdgesChange],
+  );
+
+  const handleImportTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      const next = cloneCanvasTemplate(template);
+
+      onEdgesChange(
+        edges.map((edge) => ({ type: "remove" as const, id: edge.id })),
+      );
+      onNodesChange([
+        ...nodes.map((node) => ({ type: "remove" as const, id: node.id })),
+        ...next.nodes.map((node) => ({ type: "add" as const, item: node })),
+      ]);
+      onEdgesChange(
+        next.edges.map((edge) => ({ type: "add" as const, item: edge })),
+      );
+
+      onTemplatesOpenChange(false);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          void reactFlow.fitView({
+            nodes: next.nodes,
+            duration: CANVAS_ZOOM_DURATION_MS,
+            padding: 0.2,
+          });
+        });
+      });
+    },
+    [
+      edges,
+      nodes,
+      onEdgesChange,
+      onNodesChange,
+      onTemplatesOpenChange,
+      reactFlow,
+    ],
   );
 
   return (
@@ -84,23 +137,33 @@ function FlowCanvasInner() {
           size={1}
           color="var(--border-subtle)"
         />
-        <MiniMap
-          pannable
-          zoomable
-          className="!rounded-xl !border !border-surface-border !bg-surface"
-          maskColor="rgba(8, 8, 9, 0.7)"
-          nodeColor="var(--accent-primary)"
-        />
       </ReactFlow>
+      <CanvasControlBar />
       <ShapePanel />
+      <StarterTemplatesModal
+        open={templatesOpen}
+        onOpenChange={onTemplatesOpenChange}
+        onImport={handleImportTemplate}
+      />
     </div>
   );
 }
 
-export function FlowCanvas() {
+interface FlowCanvasProps {
+  templatesOpen: boolean;
+  onTemplatesOpenChange: (open: boolean) => void;
+}
+
+export function FlowCanvas({
+  templatesOpen,
+  onTemplatesOpenChange,
+}: FlowCanvasProps) {
   return (
     <ReactFlowProvider>
-      <FlowCanvasInner />
+      <FlowCanvasInner
+        templatesOpen={templatesOpen}
+        onTemplatesOpenChange={onTemplatesOpenChange}
+      />
     </ReactFlowProvider>
   );
 }

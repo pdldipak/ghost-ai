@@ -69,6 +69,7 @@ export function EditorShell({
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const projectActions = useProjectActions({ activeProjectId });
 
   const isOwner = useMemo(
@@ -101,6 +102,7 @@ export function EditorShell({
         projectName={activeProjectName}
         isAiSidebarOpen={isAiSidebarOpen}
         onAiSidebarToggle={() => setIsAiSidebarOpen((open) => !open)}
+        onTemplatesClick={() => setIsTemplatesOpen(true)}
         onShareClick={shareDialog.openDialog}
       />
       <main className="relative flex min-h-0 flex-1">
@@ -119,7 +121,10 @@ export function EditorShell({
         {isWorkspace && activeProjectId ? (
           <>
             <CanvasRoom roomId={activeProjectId}>
-              <FlowCanvas />
+              <FlowCanvas
+                templatesOpen={isTemplatesOpen}
+                onTemplatesOpenChange={setIsTemplatesOpen}
+              />
             </CanvasRoom>
             <AiSidebarPlaceholder isOpen={isAiSidebarOpen} />
           </>

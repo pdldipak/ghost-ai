@@ -62,3 +62,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-21 | Added a floating color toolbar on selected canvas nodes so collaborators can apply predefined fill/text pairs per `15-nodes-color-toolbar.md` |
 | 2026-08-21 | Restored progress-tracker Session Notes to the stack/version inventory (Next.js, shadcn, Clerk, Liveblocks, Prisma) |
 | 2026-08-21 | Added four-side hover handles, a custom smooth-step `canvasEdge` renderer, and inline edge label editing per `16-edge-behavior.md` |
+| 2026-08-22 | Added a bottom-left canvas control bar for zoom and Liveblocks undo/redo, wired keyboard shortcuts, and removed the MiniMap per `17-canvas-ergonomics.md` |
+| 2026-08-22 | Added a starter template library with navbar import into the active Liveblocks canvas per `18-starter-template.md` |
