@@ -65,3 +65,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-22 | Added a bottom-left canvas control bar for zoom and Liveblocks undo/redo, wired keyboard shortcuts, and removed the MiniMap per `17-canvas-ergonomics.md` |
 | 2026-08-22 | Added a starter template library with navbar import into the active Liveblocks canvas per `18-starter-template.md` |
 | 2026-08-22 | Added canvas presence avatars and live cursors, keeping the Clerk UserButton on editor home and in the workspace canvas group per `19-presence-avatars-cursor.md` |
+| 2026-08-22 | Tightened `20-ai-sidebar-shell.md` into an implementation prompt against the current `AiSidebarPlaceholder` and real project tokens |
+| 2026-08-22 | Replaced the workspace AI sidebar placeholder with a floating `AiSidebar` (header, Architect/Specs tabs, local demo chat) per `20-ai-sidebar-shell.md` |

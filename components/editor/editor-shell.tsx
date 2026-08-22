@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { CanvasRoom } from "@/components/editor/canvas-room";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
@@ -33,23 +34,6 @@ function SidebarBackdrop({
       onClick={onClose}
       tabIndex={isOpen ? 0 : -1}
     />
-  );
-}
-
-function AiSidebarPlaceholder({ isOpen }: { isOpen: boolean }) {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <aside className="flex h-full w-80 shrink-0 flex-col border-l border-surface-border bg-surface">
-      <div className="border-b border-surface-border px-4 py-3">
-        <h2 className="text-sm font-medium text-copy">AI Assistant</h2>
-      </div>
-      <div className="flex flex-1 items-center justify-center px-4">
-        <p className="text-center text-sm text-copy-muted">AI chat coming soon</p>
-      </div>
-    </aside>
   );
 }
 
@@ -126,7 +110,10 @@ export function EditorShell({
                 onTemplatesOpenChange={setIsTemplatesOpen}
               />
             </CanvasRoom>
-            <AiSidebarPlaceholder isOpen={isAiSidebarOpen} />
+            <AiSidebar
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+            />
           </>
         ) : (
           <EditorHome onNewProject={projectActions.openCreateDialog} />
