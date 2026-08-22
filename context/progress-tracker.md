@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — AI sidebar shell in the workspace; ready for next feature unit
+- Foundation — canvas interaction bugfixes in the workspace
 
 ## Current Goal
 
-- Choose the next feature unit after the AI sidebar shell.
+- Choose the next feature unit after canvas interaction bugfixes.
 
 ## Completed
 
@@ -32,6 +32,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Starter templates (`feature-specs/18-starter-template.md`): static `CANVAS_TEMPLATES` library (microservices, CI/CD pipeline, event-driven) in `starter-templates.ts`; workspace navbar Templates button opens `StarterTemplatesModal` with a scrollable card grid, lightweight SVG previews, and Import; import replaces the Liveblocks room graph via `onNodesChange` / `onEdgesChange` and fits the view.
 - Presence avatars and cursors (`feature-specs/19-presence-avatars-cursor.md`): workspace canvas shows a top-right collaborator avatar stack (photo or initials, max five, +N overflow) plus Clerk `UserButton`; navbar `UserButton` stays on editor home only; other users get live cursors from presence `cursor` in flow coordinates; current user (including extra tabs) is excluded from both avatars and cursors.
 - AI sidebar shell (`feature-specs/20-ai-sidebar-shell.md`): workspace `AiSidebarPlaceholder` extracted to `components/editor/ai-sidebar.tsx`; parent-owned open/close kept; floating right overlay slides like `ProjectSidebar`; header, Architect/Specs tabs, local chat empty/demo thread, and a visual-only spec card; no backend, Liveblocks, or AI generation.
+- Canvas autosave (`feature-specs/21-canvas-autosave.md`): `@vercel/blob` installed; `PUT`/`GET` `/api/projects/[projectId]/canvas` upload nodes/edges to `canvas/{projectId}.json` and store the blob URL on `canvasJsonPath`; empty Liveblocks rooms restore once from blob; `useCanvasAutosave` debounce-saves at 1500ms; workspace navbar Save control shows idle/saving/saved/error.
+- Canvas interaction bugfixes (`feature-specs/22-delete-nodes-edge.md`): shape-panel drops center the node on the cursor; React Flow boolean `fitView` removed so the first drop does not auto-zoom (non-empty rooms still fit once on init; restore/import/Fit button unchanged); `img.clerk.com` allowed via `next.config.ts` `images.remotePatterns`. Delete, four-side handles, and workspace navbar `UserButton` hiding were already in place.
 
 ## In Progress
 
@@ -39,7 +41,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after the AI sidebar shell.
+- Choose the next feature unit after canvas interaction bugfixes.
 
 ## Open Questions
 
@@ -96,6 +98,13 @@ Feature 19:
 Feature 20:
 - **AI sidebar shell:** Workspace-only `AiSidebar` in `components/editor/ai-sidebar.tsx` replaces the inline placeholder. Open/close stays on `EditorShell` (`isAiSidebarOpen`) and the existing navbar toggle. The panel is a fixed right overlay (`top-12`, `z-40`, `w-80`) that stays mounted and slides with `translate-x-full` / `translate-x-0`, matching `ProjectSidebar` so the canvas layout does not shrink.
 - **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
+Feature 21:
+- **Canvas persistence:** Prisma `canvasJsonPath` stores the Vercel Blob URL only. Placeholder paths (`canvas/{projectId}.json`, `pending`) mean no snapshot. Blob JSON lives at `canvas/{projectId}.json` with overwrite and no random suffix. Uploads try private then public access so either store type works. Owner or collaborator may GET/PUT via `/api/projects/[projectId]/canvas`.
+- **Autosave + restore:** `useCanvasAutosave` hydrates empty Liveblocks rooms from blob once, then debounce-saves at 1500ms. Non-empty rooms are never overwritten from blob. Workspace navbar Save control flushes immediately and shows idle/saving/saved/error.
+Feature 22:
+- **Drop centering:** Shape-panel drops convert the cursor with `screenToFlowPosition`, then subtract half of the payload width/height so React Flow `position` (top-left) places the node center on the cursor.
+- **No drop fitView:** The React Flow `fitView` boolean is removed so the first dropped node does not zoom the viewport. Non-empty rooms fit once in `onInit`. Blob restore, template import, and the control-bar Fit button still call `fitView` explicitly.
+- **Clerk images:** `next.config.ts` `images.remotePatterns` allows `https` `img.clerk.com`. Delete, four-side handles, and hiding the workspace navbar `UserButton` were already implemented and left unchanged.
 
 ## Session Notes
 
@@ -107,3 +116,4 @@ Feature 20:
 - **Prisma:** Prisma 7.8.0 – generated client goes to `app/generated/prisma/`; import `PrismaClient` from `@/app/generated/prisma/client` (no `index.ts` in v7). Direct Postgres uses `{ adapter }` with `@prisma/adapter-pg`; Accelerate URLs (`prisma+postgress://`) use `{ accelerateUrl }` plus `withAccelerate()`. Client is a lazy proxy so `next build` does not require `DATABASE_URL`.
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
+- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.

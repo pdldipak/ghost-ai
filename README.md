@@ -23,8 +23,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | **`liveblocks.config.ts`** | Typed Presence / Storage / UserMeta for Liveblocks |
 | **React Flow** (`@xyflow/react`) | Canvas nodes and edges |
 | **shadcn/ui** + Tailwind + Lucide | Editor UI primitives |
+| **Vercel Blob** (`@vercel/blob`) | Canvas snapshots (specs later) |
 
-**Planned (not installed):** Trigger.dev (AI jobs), Vercel Blob (canvas snapshots + Markdown specs).
+**Planned (not installed):** Trigger.dev (AI jobs).
 
 ## Environment
 
@@ -34,6 +35,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Clerk keys (`NEXT_PUBLIC_CLERK_*`, secret key) | Auth + `proxy.ts` |
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `SIGN_UP_URL` | Public auth paths |
 | `LIVEBLOCKS_SECRET_KEY` | Server room auth (`/api/liveblocks-auth`) |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob uploads for canvas snapshots |
 
 ## Agent skills
 

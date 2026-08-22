@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, type MutableRefObject } from "react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
   Background,
@@ -11,6 +11,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
   type Connection,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -25,6 +26,10 @@ import {
   cloneCanvasTemplate,
   type CanvasTemplate,
 } from "@/components/editor/starter-templates";
+import {
+  useCanvasAutosave,
+  type CanvasSaveStatus,
+} from "@/hooks/use-canvas-autosave";
 import { useCursorPresence } from "@/hooks/use-cursor-presence";
 import { CANVAS_ZOOM_DURATION_MS } from "@/hooks/use-keyboard-shortcuts";
 import { useShapeDrop } from "@/hooks/use-shape-drop";
@@ -44,13 +49,19 @@ const edgeTypes = {
 };
 
 interface FlowCanvasInnerProps {
+  projectId: string;
   templatesOpen: boolean;
   onTemplatesOpenChange: (open: boolean) => void;
+  onSaveStatusChange: (status: CanvasSaveStatus) => void;
+  saveNowRef: MutableRefObject<(() => void) | null>;
 }
 
 function FlowCanvasInner({
+  projectId,
   templatesOpen,
   onTemplatesOpenChange,
+  onSaveStatusChange,
+  saveNowRef,
 }: FlowCanvasInnerProps) {
   const reactFlow = useReactFlow();
   const { nodes, edges, onNodesChange, onEdgesChange, onDelete } =
@@ -59,6 +70,61 @@ function FlowCanvasInner({
       nodes: { initial: [] },
       edges: { initial: [] },
     });
+
+  const handleFitSavedView = useCallback(
+    (savedNodes: CanvasNode[]) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          void reactFlow.fitView({
+            nodes: savedNodes,
+            duration: CANVAS_ZOOM_DURATION_MS,
+            padding: 0.2,
+          });
+        });
+      });
+    },
+    [reactFlow],
+  );
+
+  const handleInit = useCallback(
+    (instance: ReactFlowInstance<CanvasNode, CanvasEdge>) => {
+      const currentNodes = instance.getNodes();
+      if (currentNodes.length === 0) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          void instance.fitView({
+            nodes: currentNodes,
+            duration: CANVAS_ZOOM_DURATION_MS,
+            padding: 0.2,
+          });
+        });
+      });
+    },
+    [],
+  );
+
+  const { status, saveNow } = useCanvasAutosave({
+    projectId,
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onFitView: handleFitSavedView,
+  });
+
+  useEffect(() => {
+    onSaveStatusChange(status);
+  }, [onSaveStatusChange, status]);
+
+  useEffect(() => {
+    saveNowRef.current = saveNow;
+    return () => {
+      saveNowRef.current = null;
+    };
+  }, [saveNow, saveNowRef]);
 
   const { onDragOver, onDrop } = useShapeDrop(onNodesChange);
   const { onPointerMove, onPointerLeave } = useCursorPresence();
@@ -125,6 +191,7 @@ function FlowCanvasInner({
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         onDelete={onDelete}
+        onInit={handleInit}
         onPointerMove={onPointerMove}
         onPointerLeave={onPointerLeave}
         nodeTypes={nodeTypes}
@@ -133,7 +200,6 @@ function FlowCanvasInner({
         connectionLineType={ConnectionLineType.SmoothStep}
         connectionLineStyle={CANVAS_EDGE_STYLE}
         connectionMode={ConnectionMode.Loose}
-        fitView
         proOptions={{ hideAttribution: true }}
         className="bg-base"
       >
@@ -158,19 +224,28 @@ function FlowCanvasInner({
 }
 
 interface FlowCanvasProps {
+  projectId: string;
   templatesOpen: boolean;
   onTemplatesOpenChange: (open: boolean) => void;
+  onSaveStatusChange: (status: CanvasSaveStatus) => void;
+  saveNowRef: MutableRefObject<(() => void) | null>;
 }
 
 export function FlowCanvas({
+  projectId,
   templatesOpen,
   onTemplatesOpenChange,
+  onSaveStatusChange,
+  saveNowRef,
 }: FlowCanvasProps) {
   return (
     <ReactFlowProvider>
       <FlowCanvasInner
+        projectId={projectId}
         templatesOpen={templatesOpen}
         onTemplatesOpenChange={onTemplatesOpenChange}
+        onSaveStatusChange={onSaveStatusChange}
+        saveNowRef={saveNowRef}
       />
     </ReactFlowProvider>
   );
