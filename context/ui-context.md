@@ -1,9 +1,11 @@
 # UI Context 
 
 ## Theme
-Dark only. No light mode. The visual language is a dark technical workspace - near-black background, layered surfaces, and vivid accent colors for interactive elements. 
+Semantic color tokens drive the workspace UI. Dark is the default. Users can switch among Dark, Light, Midnight, Ocean, and Forest, or override only `--bg-base` with a custom page background. Themes are applied with `data-theme` on `<html>`; the `.dark` class stays on so shadcn `dark:` styles do not flip to the default light palette. Selection (and the optional custom background) persist in `localStorage`.
 
-All colors are defined as CSS custom properties in `global.css` and mapped to Tailwind token via `@theme inline`. Components must use the token - no hardcoded hex values or raw Tailwind color classes like `zinc-*`
+All colors are defined as CSS custom properties in `globals.css` and mapped to Tailwind tokens via `@theme inline`. Components must use the tokens — no hardcoded hex values or raw Tailwind color classes like `zinc-*`. Theme-specific values live only in `globals.css`; components stay on semantic classes such as `bg-base` and `text-copy`.
+
+Default (Dark) palette:
 
 | Role                   | CSS Variable           | Hex / Value |
 | ---------------------- | ---------------------- | ----------- |
@@ -69,9 +71,17 @@ Selected nodes show small corner and edge resize handles in `--accent-primary` o
 
 Connection handles sit on the top, right, bottom, and left of every node as small white dots with a dark border. They stay hidden until the node is hovered, then fade in. Any handle can connect to any other handle.
 
+Dropping a shape from the panel places the new node with its center on the cursor. The viewport does not auto-zoom when the first node is dropped.
+
 ## Edge Style
 Custom `canvasEdge` renderer with smooth-step (right-angle) routing, a light `#f8fafc` stroke, rounded caps, and a closed arrowhead. Edges stay slightly dimmed at rest and brighten when hovered or selected. An invisible wider hit path makes them easier to click without thickening the visible stroke. Double-clicking an edge opens an inline label editor at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`; the input grows with the text.
 
 ## Canvas Controls
-A pill-shaped control bar sits at the bottom-left of the canvas, above the shape panel. Zoom out, fit view, and zoom in animate the React Flow viewport. Undo and redo use Liveblocks history and dim when unavailable. Keyboard shortcuts (`+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, Cmd/Ctrl+Y) are ignored while typing in editable fields. There is no minimap. 
+A pill-shaped control bar sits at the bottom-left of the canvas, above the shape panel. Zoom out, fit view, and zoom in animate the React Flow viewport. Undo and redo use Liveblocks history and dim when unavailable. Keyboard shortcuts (`+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, Cmd/Ctrl+Y) are ignored while typing in editable fields. There is no minimap.
+
+The workspace navbar includes a Save control to the left of Templates. It shows idle (`Save`), saving, saved, and error states using `text-copy-muted`, `text-state-success`, and `text-state-error`.
+
+An icon-only appearance control sits at the far right of the editor navbar (before the home `UserButton`). It opens a compact panel of theme previews and a custom page-background color picker. Canvas node fills, node text colors, and edge strokes stay on `NODE_COLORS` / `DEFAULT_EDGE_COLOR` and do not follow the UI theme.
+
+A display-only collaborator avatar stack sits at the top-right of the canvas pane, with the Clerk UserButton in the same group. Other participants' cursors appear on the canvas as a colored pointer with a name badge.
 

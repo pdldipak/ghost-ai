@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Starter template library imported into the Liveblocks canvas; ready for next feature unit
+- Foundation — user-selectable background themes
 
 ## Current Goal
 
-- Choose the next feature unit after starter templates.
+- Choose the next feature unit after user-selectable backgrounds.
 
 ## Completed
 
@@ -30,6 +30,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
 - Canvas ergonomics (`feature-specs/17-canvas-ergonomics.md`): bottom-left pill control bar with zoom out/fit view/zoom in (animated React Flow viewport) and Liveblocks undo/redo (dimmed when empty); `useKeyboardShortcuts` handles `+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y while skipping editable fields; MiniMap removed.
 - Starter templates (`feature-specs/18-starter-template.md`): static `CANVAS_TEMPLATES` library (microservices, CI/CD pipeline, event-driven) in `starter-templates.ts`; workspace navbar Templates button opens `StarterTemplatesModal` with a scrollable card grid, lightweight SVG previews, and Import; import replaces the Liveblocks room graph via `onNodesChange` / `onEdgesChange` and fits the view.
+- Presence avatars and cursors (`feature-specs/19-presence-avatars-cursor.md`): workspace canvas shows a top-right collaborator avatar stack (photo or initials, max five, +N overflow) plus Clerk `UserButton`; navbar `UserButton` stays on editor home only; other users get live cursors from presence `cursor` in flow coordinates; current user (including extra tabs) is excluded from both avatars and cursors.
+- AI sidebar shell (`feature-specs/20-ai-sidebar-shell.md`): workspace `AiSidebarPlaceholder` extracted to `components/editor/ai-sidebar.tsx`; parent-owned open/close kept; floating right overlay slides like `ProjectSidebar`; header, Architect/Specs tabs, local chat empty/demo thread, and a visual-only spec card; no backend, Liveblocks, or AI generation.
+- Canvas autosave (`feature-specs/21-canvas-autosave.md`): `@vercel/blob` installed; `PUT`/`GET` `/api/projects/[projectId]/canvas` upload nodes/edges to `canvas/{projectId}.json` and store the blob URL on `canvasJsonPath`; empty Liveblocks rooms restore once from blob; `useCanvasAutosave` debounce-saves at 1500ms; workspace navbar Save control shows idle/saving/saved/error.
+- Canvas interaction bugfixes (`feature-specs/22-delete-nodes-edge.md`): shape-panel drops center the node on the cursor; React Flow boolean `fitView` removed so the first drop does not auto-zoom (non-empty rooms still fit once on init; restore/import/Fit button unchanged); `img.clerk.com` allowed via `next.config.ts` `images.remotePatterns`. Delete, four-side handles, and workspace navbar `UserButton` hiding were already in place.
+- User-selectable backgrounds (`feature-specs/23-user-selectable-bg.md`): CSS variable themes (`dark`, `light`, `midnight`, `ocean`, `forest`) with Dark as the default; `ThemeProvider` + localStorage persistence; icon-only navbar appearance panel with theme previews and a custom `--bg-base` color; canvas `NODE_COLORS` and edge strokes unchanged.
 
 ## In Progress
 
@@ -37,7 +42,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after starter templates.
+- Choose the next feature unit after user-selectable backgrounds.
 
 ## Open Questions
 
@@ -88,6 +93,24 @@ Feature 17:
 Feature 18:
 - **Starter templates:** Curated static snapshots live in `components/editor/starter-templates.ts` as `CanvasTemplate` + `CANVAS_TEMPLATES` (at least microservices, CI/CD pipeline, and event-driven). Nodes/edges use the shared `canvasNode` / `canvasEdge` schema and `NODE_COLORS` palette. No APIs, database models, blob persistence, template authoring, or import-on-create.
 - **Import UX:** A Templates button in the workspace navbar (next to Share) opens `StarterTemplatesModal` via `EditorDialog`. Cards show a lightweight SVG preview (bounds from node positions, lines between centers, shape/color rendering, no React Flow instance), name, description, and Import. Import replaces the active Liveblocks graph through `onNodesChange` / `onEdgesChange`, closes the modal, and fits the canvas to the imported diagram.
+Feature 19:
+- **Presence avatars:** Canvas-only overlay at the top-right of the editor canvas pane. Collaborator avatars come from Liveblocks `useOthersMapped` + `UserMeta.info` (name/avatar/color), unique by user ID, excluding the current Clerk user and that user's extra tabs. Up to five overlapping avatars, then a display-only +N chip. The Clerk `UserButton` sits in the same group, separated by a divider when at least one collaborator is present. Workspace navbar hides `UserButton` so it is not duplicated; editor home navbar is unchanged.
+- **Live cursors:** Presence `cursor` is updated from React Flow pointer move via `screenToFlowPosition` and cleared on leave. Other connections render a colored pointer and name badge inside `ViewportPortal` so they follow pan/zoom; the current user never sees their own cursor. Presence types stay `cursor` and `isThinking`; `isThinking` is unused in this feature.
+Feature 20:
+- **AI sidebar shell:** Workspace-only `AiSidebar` in `components/editor/ai-sidebar.tsx` replaces the inline placeholder. Open/close stays on `EditorShell` (`isAiSidebarOpen`) and the existing navbar toggle. The panel is a fixed right overlay (`top-12`, `z-40`, `w-80`) that stays mounted and slides with `translate-x-full` / `translate-x-0`, matching `ProjectSidebar` so the canvas layout does not shrink.
+- **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
+Feature 21:
+- **Canvas persistence:** Prisma `canvasJsonPath` stores the Vercel Blob URL only. Placeholder paths (`canvas/{projectId}.json`, `pending`) mean no snapshot. Blob JSON lives at `canvas/{projectId}.json` with overwrite and no random suffix. Uploads try private then public access so either store type works. Owner or collaborator may GET/PUT via `/api/projects/[projectId]/canvas`.
+- **Autosave + restore:** `useCanvasAutosave` hydrates empty Liveblocks rooms from blob once, then debounce-saves at 1500ms. Non-empty rooms are never overwritten from blob. Workspace navbar Save control flushes immediately and shows idle/saving/saved/error.
+Feature 22:
+- **Drop centering:** Shape-panel drops convert the cursor with `screenToFlowPosition`, then subtract half of the payload width/height so React Flow `position` (top-left) places the node center on the cursor.
+- **No drop fitView:** The React Flow `fitView` boolean is removed so the first dropped node does not zoom the viewport. Non-empty rooms fit once in `onInit`. Blob restore, template import, and the control-bar Fit button still call `fitView` explicitly.
+- **Clerk images:** `next.config.ts` `images.remotePatterns` allows `https` `img.clerk.com`. Delete, four-side handles, and hiding the workspace navbar `UserButton` were already implemented and left unchanged.
+Feature 23:
+- **Theme tokens:** Semantic project tokens stay in `globals.css` and `@theme inline`. `data-theme` on `<html>` swaps token values for `dark` (default), `light`, `midnight`, `ocean`, and `forest`. The existing Dark palette is unchanged. The `.dark` class remains on `<html>` so shadcn `dark:` utilities do not apply the default light palette.
+- **Persistence:** `ThemeProvider` reads/writes `localStorage` (`ghost-ai-theme`, `ghost-ai-custom-bg`). A bootstrap script in the root layout applies the stored theme before paint. Custom color sets only `--bg-base` as an inline style so surfaces, text, borders, and accents keep the active theme.
+- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` and edge stroke colors stay independent of the UI theme.
+- **Accent contrast:** `--primary-foreground` and `--sidebar-primary-foreground` map to `--accent-contrast` (`#080809`) instead of `--bg-base` so a custom page background cannot wash out accent-button text. Default Dark appearance is unchanged.
 
 ## Session Notes
 
@@ -99,3 +122,5 @@ Feature 18:
 - **Prisma:** Prisma 7.8.0 – generated client goes to `app/generated/prisma/`; import `PrismaClient` from `@/app/generated/prisma/client` (no `index.ts` in v7). Direct Postgres uses `{ adapter }` with `@prisma/adapter-pg`; Accelerate URLs (`prisma+postgress://`) use `{ accelerateUrl }` plus `withAccelerate()`. Client is a lazy proxy so `next build` does not require `DATABASE_URL`.
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
+- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

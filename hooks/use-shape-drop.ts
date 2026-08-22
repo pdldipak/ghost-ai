@@ -28,10 +28,14 @@ export function useShapeDrop(onNodesChange: OnNodesChange<CanvasNode>) {
         return;
       }
 
-      const position = screenToFlowPosition({
+      const cursor = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
+      const position = {
+        x: cursor.x - payload.width / 2,
+        y: cursor.y - payload.height / 2,
+      };
 
       onNodesChange([
         {

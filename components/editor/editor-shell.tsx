@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { CanvasRoom } from "@/components/editor/canvas-room";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
@@ -10,6 +11,7 @@ import { FlowCanvas } from "@/components/editor/flow-canvas";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ShareProjectDialog } from "@/components/editor/share-project-dialog";
+import type { CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import { useShareDialog } from "@/hooks/use-share-dialog";
 import type { Project } from "@/lib/project-types";
@@ -36,23 +38,6 @@ function SidebarBackdrop({
   );
 }
 
-function AiSidebarPlaceholder({ isOpen }: { isOpen: boolean }) {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <aside className="flex h-full w-80 shrink-0 flex-col border-l border-surface-border bg-surface">
-      <div className="border-b border-surface-border px-4 py-3">
-        <h2 className="text-sm font-medium text-copy">AI Assistant</h2>
-      </div>
-      <div className="flex flex-1 items-center justify-center px-4">
-        <p className="text-center text-sm text-copy-muted">AI chat coming soon</p>
-      </div>
-    </aside>
-  );
-}
-
 interface EditorShellProps {
   ownedProjects: Project[];
   sharedProjects: Project[];
@@ -70,6 +55,8 @@ export function EditorShell({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<CanvasSaveStatus>("idle");
+  const saveNowRef = useRef<(() => void) | null>(null);
   const projectActions = useProjectActions({ activeProjectId });
 
   const isOwner = useMemo(
@@ -104,6 +91,8 @@ export function EditorShell({
         onAiSidebarToggle={() => setIsAiSidebarOpen((open) => !open)}
         onTemplatesClick={() => setIsTemplatesOpen(true)}
         onShareClick={shareDialog.openDialog}
+        saveStatus={isWorkspace ? saveStatus : undefined}
+        onSaveClick={() => saveNowRef.current?.()}
       />
       <main className="relative flex min-h-0 flex-1">
         <SidebarBackdrop isOpen={isSidebarOpen} onClose={closeSidebar} />
@@ -122,11 +111,17 @@ export function EditorShell({
           <>
             <CanvasRoom roomId={activeProjectId}>
               <FlowCanvas
+                projectId={activeProjectId}
                 templatesOpen={isTemplatesOpen}
                 onTemplatesOpenChange={setIsTemplatesOpen}
+                onSaveStatusChange={setSaveStatus}
+                saveNowRef={saveNowRef}
               />
             </CanvasRoom>
-            <AiSidebarPlaceholder isOpen={isAiSidebarOpen} />
+            <AiSidebar
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+            />
           </>
         ) : (
           <EditorHome onNewProject={projectActions.openCreateDialog} />

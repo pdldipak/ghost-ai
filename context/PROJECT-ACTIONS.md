@@ -64,3 +64,13 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-21 | Added four-side hover handles, a custom smooth-step `canvasEdge` renderer, and inline edge label editing per `16-edge-behavior.md` |
 | 2026-08-22 | Added a bottom-left canvas control bar for zoom and Liveblocks undo/redo, wired keyboard shortcuts, and removed the MiniMap per `17-canvas-ergonomics.md` |
 | 2026-08-22 | Added a starter template library with navbar import into the active Liveblocks canvas per `18-starter-template.md` |
+| 2026-08-22 | Added canvas presence avatars and live cursors, keeping the Clerk UserButton on editor home and in the workspace canvas group per `19-presence-avatars-cursor.md` |
+| 2026-08-22 | Tightened `20-ai-sidebar-shell.md` into an implementation prompt against the current `AiSidebarPlaceholder` and real project tokens |
+| 2026-08-22 | Replaced the workspace AI sidebar placeholder with a floating `AiSidebar` (header, Architect/Specs tabs, local demo chat) per `20-ai-sidebar-shell.md` |
+| 2026-08-22 | Tightened `21-canvas-autosave.md` into an implementation prompt against the existing `canvasJsonPath` field, Liveblocks canvas, and workspace navbar |
+| 2026-08-22 | Added canvas autosave and restore via Vercel Blob, `canvasJsonPath` URL storage, and a workspace navbar Save status per `21-canvas-autosave.md` |
+| 2026-08-22 | Fixed canvas save failures on private Blob stores and made the navbar Save control force-upload and show saving/saved/error |
+| 2026-08-22 | Centered shape-panel drops on the cursor, stopped first-drop auto-zoom by removing React Flow `fitView`, and allowed `img.clerk.com` in `next.config.ts` per `22-delete-nodes-edge.md` |
+| 2026-08-22 | Added user-selectable background themes (CSS variable palettes, localStorage persistence, navbar appearance panel, custom page background) per `23-user-selectable-bg.md` |
+| 2026-08-22 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 |
+| 2026-08-22 | Pinned the project to Node 22 / npm 10 (`.nvmrc`, engines, CI) to match Docker and the Clerk-era runtime |

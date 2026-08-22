@@ -33,7 +33,7 @@ Ghost Assistant is a real-time collaborative system design workspace. Users desc
 ### Collaborative Canvas
 - Shared real-time canvas using Liveblocks and React Flow. 
 - Live cursors, presence indicators, and node/edge editing. 
-- Canvas snapshots presisted to the filesystem. 
+- Canvas snapshots persisted to Vercel Blob. 
 
 ### Starter the system Designs
 - A curated library of prebuilt system designs templates. 
