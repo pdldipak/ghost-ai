@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — Canvas zoom/history control bar and keyboard shortcuts; ready for next feature unit
+- Foundation — Starter template library imported into the Liveblocks canvas; ready for next feature unit
 
 ## Current Goal
 
-- Choose the next feature unit after canvas ergonomics.
+- Choose the next feature unit after starter templates.
 
 ## Completed
 
@@ -29,6 +29,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Node color toolbar (`feature-specs/15-nodes-color-toolbar.md`): selected `canvasNode` nodes show a floating `NodeToolbar` of `NODE_COLORS` swatches above the node; choosing a swatch writes `data.color` through `updateNodeData` / Liveblocks so fill and paired text color update immediately, with `nodrag` / `nopan` so toolbar clicks do not drag or pan.
 - Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
 - Canvas ergonomics (`feature-specs/17-canvas-ergonomics.md`): bottom-left pill control bar with zoom out/fit view/zoom in (animated React Flow viewport) and Liveblocks undo/redo (dimmed when empty); `useKeyboardShortcuts` handles `+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y while skipping editable fields; MiniMap removed.
+- Starter templates (`feature-specs/18-starter-template.md`): static `CANVAS_TEMPLATES` library (microservices, CI/CD pipeline, event-driven) in `starter-templates.ts`; workspace navbar Templates button opens `StarterTemplatesModal` with a scrollable card grid, lightweight SVG previews, and Import; import replaces the Liveblocks room graph via `onNodesChange` / `onEdgesChange` and fits the view.
 
 ## In Progress
 
@@ -36,7 +37,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after canvas ergonomics.
+- Choose the next feature unit after starter templates.
 
 ## Open Questions
 
@@ -84,6 +85,9 @@ Feature 16:
 Feature 17:
 - **Canvas control bar:** Floating pill at the bottom-left of the canvas (`z-20`, above the shape panel) with zoom out / fit view / zoom in and undo / redo, separated by a thin divider. Zoom calls `zoomIn` / `zoomOut` / `fitView` on the React Flow instance with a 200ms duration. Undo/redo use Liveblocks `useUndo` / `useRedo` / `useCanUndo` / `useCanRedo`; disabled buttons stay dimmed.
 - **Keyboard shortcuts:** `hooks/use-keyboard-shortcuts.ts` listens on `window` and skips `input`, `textarea`, `select`, and contenteditable targets. `+`/`=` zoom in, `-` zooms out, Cmd/Ctrl+Z undoes, Cmd/Ctrl+Shift+Z and Cmd/Ctrl+Y redo. MiniMap is no longer rendered.
+Feature 18:
+- **Starter templates:** Curated static snapshots live in `components/editor/starter-templates.ts` as `CanvasTemplate` + `CANVAS_TEMPLATES` (at least microservices, CI/CD pipeline, and event-driven). Nodes/edges use the shared `canvasNode` / `canvasEdge` schema and `NODE_COLORS` palette. No APIs, database models, blob persistence, template authoring, or import-on-create.
+- **Import UX:** A Templates button in the workspace navbar (next to Share) opens `StarterTemplatesModal` via `EditorDialog`. Cards show a lightweight SVG preview (bounds from node positions, lines between centers, shape/color rendering, no React Flow instance), name, description, and Import. Import replaces the active Liveblocks graph through `onNodesChange` / `onEdgesChange`, closes the modal, and fits the canvas to the imported diagram.
 
 ## Session Notes
 
