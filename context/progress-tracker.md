@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — user-selectable background themes
+- Foundation — Trigger.dev background tasks
 
 ## Current Goal
 
-- Choose the next feature unit after user-selectable backgrounds.
+- Choose the next feature unit after Trigger.dev setup (AI architecture generation is next when ready).
 
 ## Completed
 
@@ -35,6 +35,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Canvas autosave (`feature-specs/21-canvas-autosave.md`): `@vercel/blob` installed; `PUT`/`GET` `/api/projects/[projectId]/canvas` upload nodes/edges to `canvas/{projectId}.json` and store the blob URL on `canvasJsonPath`; empty Liveblocks rooms restore once from blob; `useCanvasAutosave` debounce-saves at 1500ms; workspace navbar Save control shows idle/saving/saved/error.
 - Canvas interaction bugfixes (`feature-specs/22-delete-nodes-edge.md`): shape-panel drops center the node on the cursor; React Flow boolean `fitView` removed so the first drop does not auto-zoom (non-empty rooms still fit once on init; restore/import/Fit button unchanged); `img.clerk.com` allowed via `next.config.ts` `images.remotePatterns`. Delete, four-side handles, and workspace navbar `UserButton` hiding were already in place.
 - User-selectable backgrounds (`feature-specs/23-user-selectable-bg.md`): CSS variable themes (`dark`, `light`, `midnight`, `ocean`, `forest`) with Dark as the default; `ThemeProvider` + localStorage persistence; icon-only navbar appearance panel with theme previews and a custom `--bg-base` color; canvas `NODE_COLORS` and edge strokes unchanged.
+- Trigger.dev setup (`feature-specs/24-trigger-setup.md`): worker runtime `node-22`; tasks in `trigger/`; `hello-world` smoke-test task; pinned `trigger.dev` CLI 4.5.12; `trigger:dev` / `trigger:deploy` scripts; `TRIGGER_SECRET_KEY` documented. No AI jobs, Prisma worker extension, or trigger API routes.
 
 ## In Progress
 
@@ -42,7 +43,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after user-selectable backgrounds.
+- Choose the next feature unit after Trigger.dev setup.
 
 ## Open Questions
 
@@ -111,6 +112,8 @@ Feature 23:
 - **Persistence:** `ThemeProvider` reads/writes `localStorage` (`ghost-ai-theme`, `ghost-ai-custom-bg`). A bootstrap script in the root layout applies the stored theme before paint. Custom color sets only `--bg-base` as an inline style so surfaces, text, borders, and accents keep the active theme.
 - **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` stay independent of the UI theme. Connector strokes use `--canvas-edge` (light on dark themes, dark on Light / light custom `--bg-base`) so they stay visible when the page background changes.
 - **Accent contrast:** `--primary-foreground` and `--sidebar-primary-foreground` map to `--accent-contrast` (`#080809`) instead of `--bg-base` so a custom page background cannot wash out accent-button text. Default Dark appearance is unchanged.
+Feature 24:
+- **Trigger.dev:** Background tasks live in `trigger/` (`dirs: ["./trigger"]`). Worker runtime is `node-22` to match the app. `@trigger.dev/sdk` 4.5.12, `@trigger.dev/build` 4.5.12, and CLI `trigger.dev` 4.5.12 are pinned together. `npm run dev` stays Next-only; run `npm run trigger:dev` in a second process. Prisma worker extension, React hooks, and AI tasks are deferred until those features are implemented. Trigger tasks from the app with type-only imports plus `tasks.trigger`, never by importing the task instance.
 
 ## Session Notes
 
@@ -123,4 +126,5 @@ Feature 23:
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
 - **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Trigger.dev:** `@trigger.dev/sdk` ^4.5.12, `@trigger.dev/build` ^4.5.12, CLI `trigger.dev` ^4.5.12; `trigger.config.ts` project ref `proj_bzliuuxkcnmpifganxmx`; tasks in `trigger/`; worker `runtime: "node-22"`.
 - **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

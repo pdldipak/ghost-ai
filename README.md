@@ -24,8 +24,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | **React Flow** (`@xyflow/react`) | Canvas nodes and edges |
 | **shadcn/ui** + Tailwind + Lucide | Editor UI primitives |
 | **Vercel Blob** (`@vercel/blob`) | Canvas snapshots (specs later) |
+| **Trigger.dev** (`@trigger.dev/sdk`, `@trigger.dev/build`, `trigger.dev`) | Durable background tasks for AI generation |
 
-**Planned (not installed):** Trigger.dev (AI jobs).
+**Planned:** AI architecture and spec generation tasks on Trigger.dev.
 
 ## Environment
 
@@ -36,6 +37,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `SIGN_UP_URL` | Public auth paths |
 | `LIVEBLOCKS_SECRET_KEY` | Server room auth (`/api/liveblocks-auth`) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob uploads for canvas snapshots |
+| `TRIGGER_SECRET_KEY` | Authenticate the Next.js app with Trigger.dev (DEV key from the dashboard) |
 
 ## Agent skills
 
@@ -53,10 +55,13 @@ Installed under `.agents/skills/` (locked in `skills-lock.json`):
 | `prisma-compute` | `prisma/skills` | Compute deploy (pack; not primary yet) |
 | `prisma-mongodb-upgrade` | `prisma/skills` | Mongo guide (pack; we use Postgres) |
 | `liveblocks-best-practices` | `liveblocks/skills` | Rooms, auth, React Flow multiplayer |
+| `trigger-authoring-tasks` | `@trigger.dev/sdk` | Background tasks (`trigger/`) |
+| `trigger-authoring-chat-agent` | `@trigger.dev/sdk` | Durable `chat.agent` (later) |
 
 ```bash
 npx skills add prisma/skills
 npx skills add liveblocks/skills
+npx skills add triggerdotdev/skills
 ```
 
 ### Troubleshooting
@@ -113,6 +118,17 @@ npx prisma generate
 npx prisma migrate dev
 npx prisma studio
 ```
+
+## Trigger.dev
+
+Durable background jobs live in `trigger/` and are configured by `trigger.config.ts` (Node 22 worker, project ref from the dashboard). The Next.js `dev` script stays Next-only so Docker `app-dev` is unchanged.
+
+```bash
+npm run trigger:dev
+npm run trigger:deploy
+```
+
+`trigger:dev` watches `trigger/` and registers tasks with the Trigger.dev dashboard. Test `hello-world` from the Tasks page. Set `TRIGGER_SECRET_KEY` in `.env.local` before triggering runs from the Next.js app.
 
 ## CI/CD
 

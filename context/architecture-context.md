@@ -10,7 +10,7 @@
 | Auth      | Clerk                  | User identity and route protection |
 | Database  | Prisma + PostgreSQL    | Relational metadata: projects, collaborators, specs, task runs |
 | Canvas         | Liveblocks + React Flow | Real-time collaborative canvas, presence, and cursors |
-| Background tasks | Trigger.dev           | Durable AI generation workflows |
+| Background tasks | Trigger.dev (`trigger/`, Node 22 worker) | Durable AI generation workflows |
 | Artifact storage | Vercel Blob           | Canvas snapshots and generated Markdown specs |
 
 ## System Boundaries

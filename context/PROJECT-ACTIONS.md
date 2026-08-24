@@ -75,3 +75,4 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-22 | Regenerated package-lock.json with Node 22/npm 10 so CI `npm ci` resolves nested utf-8-validate@5.0.10 |
 | 2026-08-22 | Pinned the project to Node 22 / npm 10 (`.nvmrc`, engines, CI) to match Docker and the Clerk-era runtime |
 | 2026-08-22 | Made canvas connector strokes follow `--canvas-edge` so they stay visible on light themes and custom page backgrounds |
+| 2026-08-24 | Finished Trigger.dev setup: Node 22 worker, `trigger/` tasks, `hello-world` smoke test, pinned CLI, and `trigger:dev` / `trigger:deploy` scripts per `24-trigger-setup.md` |

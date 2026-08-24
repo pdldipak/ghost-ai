@@ -254,3 +254,4 @@ The application theme should control the workspace UI, while node colors remain 
 - All components import without errors.
 - TypeScript passes.
 - The application builds successfully.
+- `npm ci`, `npm run lint`, and `npm run build` pass.
