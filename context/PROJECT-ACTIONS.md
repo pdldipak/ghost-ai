@@ -76,3 +76,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-22 | Pinned the project to Node 22 / npm 10 (`.nvmrc`, engines, CI) to match Docker and the Clerk-era runtime |
 | 2026-08-22 | Made canvas connector strokes follow `--canvas-edge` so they stay visible on light themes and custom page backgrounds |
 | 2026-08-24 | Finished Trigger.dev setup: Node 22 worker, `trigger/` tasks, `hello-world` smoke test, pinned CLI, and `trigger:dev` / `trigger:deploy` scripts per `24-trigger-setup.md` |
+| 2026-08-24 | Removed the Trigger.dev `hello-world` smoke-test task so `trigger/` only holds Ghost Assistant product jobs |
+| 2026-08-24 | Added `trigger/generate-architecture.ts` so `trigger:dev` finds a product task instead of failing with no trigger files |

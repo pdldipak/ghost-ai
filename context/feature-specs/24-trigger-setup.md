@@ -17,16 +17,13 @@ Update `trigger.config.ts`:
 
 Remove `src/trigger`. This app does not use a `src/` tree.
 
-## Example Task
+## Task directory
 
-Add `trigger/hello-world.ts` as a smoke-test task using `task()` from `@trigger.dev/sdk`.
+Keep `trigger/` in the repo for product jobs. Do not add a hello-world or other sample task.
 
-- id: `hello-world`
-- payload: `{ message: string }`
-- return a JSON-serializable result
-- no database, Blob, Liveblocks, or AI calls
+`trigger:dev` requires at least one `*.ts` task file under `./trigger`. Add `trigger/generate-architecture.ts` with id `generate-architecture` and payload `{ projectId, prompt }` so the worker can start. Do not call models, Liveblocks, Prisma, or Blob yet — that belongs in a later AI generation feature.
 
-This task exists so `npx trigger.dev@latest dev` can register something. Real architecture and spec jobs come later.
+Architecture generation and spec generation behavior are later feature units.
 
 ## Scripts and CLI
 

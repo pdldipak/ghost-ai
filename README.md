@@ -128,7 +128,7 @@ npm run trigger:dev
 npm run trigger:deploy
 ```
 
-`trigger:dev` watches `trigger/` and registers tasks with the Trigger.dev dashboard. Test `hello-world` from the Tasks page. Set `TRIGGER_SECRET_KEY` in `.env.local` before triggering runs from the Next.js app.
+`trigger:dev` watches `trigger/` and registers tasks with the Trigger.dev dashboard. The first product task is `generate-architecture`. Set `TRIGGER_SECRET_KEY` in `.env.local` before triggering runs from the Next.js app. Use Node 22 (`nvm use`) so the local CLI matches `runtime: "node-22"`.
 
 ## CI/CD
 
