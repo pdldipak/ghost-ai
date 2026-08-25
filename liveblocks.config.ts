@@ -1,3 +1,5 @@
+import type { AiStatusEvent } from "@/types/tasks";
+
 // Define Liveblocks types for your application
 // https://liveblocks.io/docs/api-reference/liveblocks-react#Typing-your-data
 declare global {
@@ -18,11 +20,7 @@ declare global {
       };
     };
 
-    RoomEvent: {
-      type: "ai-status";
-      step: "start" | "processing" | "complete" | "failure";
-      message: string;
-    };
+    RoomEvent: AiStatusEvent;
 
     ThreadMetadata: Record<string, never>;
 

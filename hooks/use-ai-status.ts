@@ -1,34 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useEventListener } from "@liveblocks/react/suspense";
+import { useState } from "react";
+import {
+  useEventListener,
+  useOthersMapped,
+  useSelf,
+} from "@liveblocks/react/suspense";
 
-import type { AiStatusEvent } from "@/lib/ai-room";
+import {
+  isAiStatusActive,
+  parseAiStatusEvent,
+  type AiStatusEvent,
+} from "@/types/tasks";
 
-const COMPLETE_HIDE_MS = 6000;
+export { AI_STATUS_FEED } from "@/types/tasks";
 
-export function useAiStatus(): AiStatusEvent | null {
+export function useAiStatusFeed(): AiStatusEvent | null {
   const [status, setStatus] = useState<AiStatusEvent | null>(null);
 
   useEventListener(({ event }) => {
-    if (event.type === "ai-status") {
-      setStatus(event);
-    }
-  });
+    const parsed = parseAiStatusEvent(event);
 
-  useEffect(() => {
-    if (status?.step !== "complete") {
+    if (!parsed) {
       return;
     }
 
-    const timeout = window.setTimeout(() => {
-      setStatus(null);
-    }, COMPLETE_HIDE_MS);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [status]);
+    setStatus(parsed);
+  });
 
   return status;
+}
+
+export function useAiStatus(): AiStatusEvent | null {
+  return useAiStatusFeed();
+}
+
+export function useAiGenerationActive(status: AiStatusEvent | null): boolean {
+  const othersThinking = useOthersMapped((other) => other.presence.isThinking);
+  const isSelfThinking = useSelf((me) => me.presence.isThinking === true);
+  const isAnyoneThinking =
+    isSelfThinking || othersThinking.some(([, thinking]) => thinking === true);
+
+  return isAnyoneThinking || isAiStatusActive(status);
 }

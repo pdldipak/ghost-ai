@@ -1,13 +1,29 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { Bot, Download, FileText, SendHorizontal, X } from "lucide-react";
+import {
+  Bot,
+  Download,
+  FileText,
+  Loader2,
+  SendHorizontal,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  useAiGenerationActive,
+  useAiStatusFeed,
+} from "@/hooks/use-ai-status";
 import { cn } from "@/lib/utils";
+import {
+  AI_STATUS_FEED,
+  getAiStatusDisplayText,
+  type AiStatusEvent,
+} from "@/types/tasks";
 
 const STARTER_PROMPTS = [
   "Design an e-commerce backend",
@@ -36,9 +52,15 @@ interface AiSidebarProps {
 }
 
 export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
+  const status = useAiStatusFeed();
+  const isGenerating = useAiGenerationActive(status);
+  const statusText = status ? getAiStatusDisplayText(status) : "";
+  const statusToneClass = getStatusToneClass(status);
+
   return (
     <aside
       aria-hidden={!isOpen}
+      data-ai-status-feed={AI_STATUS_FEED}
       className={cn(
         "fixed top-12 right-0 z-40 flex h-[calc(100vh-3rem)] w-80 flex-col border-l border-surface-border bg-surface/95 shadow-lg transition-transform duration-200 ease-in-out",
         isOpen ? "translate-x-0" : "translate-x-full",
@@ -47,11 +69,27 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
       <div className="flex items-start justify-between gap-3 border-b border-surface-border px-4 py-3">
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-elevated text-ai-text">
-            <Bot className="size-4" aria-hidden />
+            {isGenerating ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Bot className="size-4" aria-hidden />
+            )}
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-medium text-copy">AI Workspace</h2>
-            <p className="text-xs text-copy-muted">Collaborate with Ghost AI</p>
+            {statusText ? (
+              <p
+                role="status"
+                aria-live="polite"
+                className={cn("truncate text-xs", statusToneClass)}
+              >
+                {statusText}
+              </p>
+            ) : (
+              <p className="text-xs text-copy-muted">
+                Collaborate with Ghost AI
+              </p>
+            )}
           </div>
         </div>
         <Button
@@ -87,7 +125,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
           value="ai-architect"
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <AiArchitectTab />
+          <AiArchitectTab isGenerating={isGenerating} />
         </TabsContent>
 
         <TabsContent
@@ -101,13 +139,25 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
   );
 }
 
-function AiArchitectTab() {
+function getStatusToneClass(status: AiStatusEvent | null): string {
+  if (status?.step === "failure") {
+    return "text-state-error";
+  }
+
+  if (status?.step === "complete") {
+    return "text-state-success";
+  }
+
+  return "text-ai-text";
+}
+
+function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const sendMessage = (content: string) => {
     const trimmed = content.trim();
-    if (trimmed.length === 0) {
+    if (trimmed.length === 0 || isGenerating) {
       return;
     }
 
@@ -137,7 +187,10 @@ function AiArchitectTab() {
     <div className="flex min-h-0 flex-1 flex-col">
       <ScrollArea className="min-h-0 flex-1">
         {messages.length === 0 ? (
-          <ArchitectEmptyState onSelectPrompt={setDraft} />
+          <ArchitectEmptyState
+            isGenerating={isGenerating}
+            onSelectPrompt={setDraft}
+          />
         ) : (
           <div className="flex flex-col gap-3 px-4 py-3">
             {messages.map((message) => (
@@ -155,15 +208,16 @@ function AiArchitectTab() {
           placeholder="Describe the system you want to design"
           className="min-h-[72px] max-h-40 resize-none overflow-y-auto"
           aria-label="AI prompt"
+          disabled={isGenerating}
         />
         <Button
           type="button"
           className="mt-3 w-full bg-brand text-primary-foreground hover:bg-brand/80"
           onClick={() => sendMessage(draft)}
-          disabled={draft.trim().length === 0}
+          disabled={isGenerating || draft.trim().length === 0}
         >
-          <SendHorizontal />
-          Send
+          {isGenerating ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
+          {isGenerating ? "Working…" : "Send"}
         </Button>
       </div>
     </div>
@@ -171,8 +225,10 @@ function AiArchitectTab() {
 }
 
 function ArchitectEmptyState({
+  isGenerating,
   onSelectPrompt,
 }: {
+  isGenerating: boolean;
   onSelectPrompt: (prompt: string) => void;
 }) {
   return (
@@ -188,8 +244,9 @@ function ArchitectEmptyState({
           <button
             key={prompt}
             type="button"
-            className="rounded-full bg-elevated px-3 py-1.5 text-left text-xs text-ai-text"
+            className="rounded-full bg-elevated px-3 py-1.5 text-left text-xs text-ai-text disabled:opacity-50"
             onClick={() => onSelectPrompt(prompt)}
+            disabled={isGenerating}
           >
             {prompt}
           </button>

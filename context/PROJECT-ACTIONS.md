@@ -90,3 +90,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Re-exported `ai` SDK symbols from `lib/ai-sdk.ts` so TypeScript loads the package's `.d.ts` instead of treating `dist/index.js` as untyped |
 | 2026-08-25 | Stopped first-drop fitView from writing a NaN zoom into React Flow so creating a shape no longer logs NaN `cx`/`cy`/`r` on the dotted background |
 | 2026-08-25 | Hardened design-agent canvas apply so Gemini cannot write non-finite node positions/sizes into Liveblocks, leaving existing canvas, APIs, and sidebar unwired |
+| 2026-08-25 | Tightened `27-ai-presence-state.md` into an implementation prompt against existing `ai-status` room events, `isThinking` presence, and the local AI sidebar |
+| 2026-08-25 | Added shared AI presence status in the sidebar, validated `ai-status` payloads, composer lock while thinking, and live-cursor spinners per `27-ai-presence-state.md` |

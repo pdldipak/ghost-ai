@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Choose the next feature unit after design-agent logic (AI sidebar wiring or spec generation is next when ready).
+- Choose the next feature unit after shared AI presence (AI sidebar → design API, or spec generation).
 
 ## Completed
 
@@ -38,6 +38,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Trigger.dev setup (`feature-specs/24-trigger-setup.md`): worker runtime `node-22`; `generate-architecture` and `generate-spec` product tasks; pinned `trigger.dev` CLI 4.5.12; `trigger:dev` / `trigger:deploy` scripts; `TRIGGER_SECRET_KEY` documented. No AI jobs, Prisma worker extension, or trigger API routes.
 - Design agent API (`feature-specs/25-design-agent-api.md`): Prisma `TaskRun` with unique `runId` and project cascade; membership-gated `POST /api/ai/design` triggers `generate-architecture` via type-only `tasks.trigger` and stores the run; `POST /api/ai/design/token` mints a run-scoped public token for the TaskRun owner; task remains a no-AI stub. No UI, Liveblocks, or canvas writes.
 - Design agent logic (`feature-specs/26-design-agent-logic.md`): `generate-architecture` uses Gemini to plan canvas operations, applies them through Liveblocks `mutateFlow`, and publishes AI presence (`cursor` / `isThinking`) plus room-event status (start / processing / complete / failure). No API or AI sidebar wiring.
+- AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
 
 ## In Progress
 
@@ -45,7 +46,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after design-agent logic (AI sidebar wiring or spec generation is next when ready).
+- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that shared AI presence is in place.
 
 ## Open Questions
 
@@ -124,6 +125,8 @@ Feature 25:
 Feature 26:
 - **Design agent:** `generate-architecture` reads the current Liveblocks React Flow graph, asks Gemini (`@ai-sdk/google`, `gemini-3.6-flash`) for a canvas operation plan, validates it, then applies add/move/resize/update/delete node and add/delete edge through `mutateFlow` from `@liveblocks/react-flow/node`. Invalid plans (including non-finite positions/sizes) are not applied. The canvas is not wiped unless the prompt asks to replace or generate a new design. Official payload remains `{ projectId, prompt }` (`projectId` is the Liveblocks room ID); the worker also accepts `roomId` as an alias for dashboard tests. API key lookup is `GOOGLE_AI_API_KEY`, then `GOOGLE_GENERATIVE_AI_API_KEY`, then `GEMINI_API_KEY`.
 - **Presence and status:** The agent uses ephemeral Liveblocks presence as user `ghost-ai` with existing fields only (`cursor`, `isThinking`). Progress is broadcast as `RoomEvent` `{ type: "ai-status", step, message }` for start / processing / complete / failure. Presence is cleared when the task finishes. No new Storage keys, APIs, or AI sidebar wiring.
+Feature 27:
+- **Shared AI activity:** Clients subscribe to the existing `ai-status` room events as `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`step`, optional `text`, fallback `message`) and is validated before display. Generation is active when the latest status is `start`/`processing` or any presence has `isThinking: true`. The AI sidebar shows the latest message, locks only the Architect composer, and live-cursor badges show a spinner while thinking. No Storage keys, Feeds/Inbox, new presence fields, or `/api/ai/design` wiring.
 
 
 ## Session Notes

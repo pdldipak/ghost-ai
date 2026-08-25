@@ -1,18 +1,13 @@
 import { liveblocks } from "@/lib/liveblocks";
+import type { AiStatusEvent, AiStatusStep } from "@/types/tasks";
+
+export type { AiStatusEvent, AiStatusStep } from "@/types/tasks";
 
 export const AI_USER_ID = "ghost-ai";
 export const AI_USER_NAME = "Ghost AI";
 export const AI_USER_COLOR = "#6457f9";
 export const AI_PRESENCE_TTL_SECONDS = 120;
 export const AI_PRESENCE_LEAVE_TTL_SECONDS = 2;
-
-export type AiStatusStep = "start" | "processing" | "complete" | "failure";
-
-export interface AiStatusEvent {
-  type: "ai-status";
-  step: AiStatusStep;
-  message: string;
-}
 
 export const AI_STATUS_MESSAGES: Record<AiStatusStep, string> = {
   start: "Ghost AI started designing…",
@@ -37,6 +32,7 @@ export async function publishAiStatus(
     type: "ai-status",
     step,
     message,
+    text: message,
   };
 
   await liveblocks.broadcastEvent(roomId, event);
