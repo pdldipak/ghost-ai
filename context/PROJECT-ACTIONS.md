@@ -94,3 +94,8 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Added shared AI presence status in the sidebar, validated `ai-status` payloads, composer lock while thinking, and live-cursor spinners per `27-ai-presence-state.md` |
 | 2026-08-25 | Tightened `28-sidebar-chat-feed.md` into an implementation prompt against the local Architect demo thread, `ai-status-feed` room events, and existing sidebar composer |
 | 2026-08-25 | Added room-scoped Architect chat on a separate `ai-chat` feed with validated payloads, sender/timestamp bubbles, and send-error state per `28-sidebar-chat-feed.md` |
+| 2026-08-25 | Tightened `29-design-agent-frontend.md` into an implementation prompt against the existing design API, `ai-chat` feed, and `useRealtimeRun` |
+| 2026-08-25 | Wired Architect submit to `POST /api/ai/design` with run-scoped realtime tracking, a status strip, and a final assistant chat message per `29-design-agent-frontend.md` |
+| 2026-08-25 | Professionalized Gemini design prompts and Architect starter chips so the agent writes user-facing architecture summaries |
+| 2026-08-25 | Switched Architect starter chips and assistant bubbles to `text-copy` on `bg-elevated` so labels stay readable across themes |
+| 2026-08-25 | Set Architect composer text, caret, and placeholder to copy tokens so typed chat text contrasts with the dark input |

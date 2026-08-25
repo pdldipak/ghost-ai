@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 
 import { getAccessibleProject, getClerkIdentity } from "@/lib/project-access";
 import { prisma } from "@/lib/prisma";
+import { createRunPublicToken } from "@/lib/trigger-public-token";
 import type { generateArchitecture } from "@/trigger/generate-architecture";
+
+function readNonEmptyString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
 
 export async function POST(request: Request) {
   const identity = await getClerkIdentity();
@@ -24,27 +29,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { prompt, projectId } = body as {
+  const payload = body as {
     prompt?: unknown;
     projectId?: unknown;
+    roomId?: unknown;
   };
 
-  if (typeof prompt !== "string" || prompt.trim().length === 0) {
+  const trimmedPrompt = readNonEmptyString(payload.prompt);
+  const trimmedProjectId =
+    readNonEmptyString(payload.projectId) || readNonEmptyString(payload.roomId);
+
+  if (!trimmedPrompt) {
     return NextResponse.json(
       { error: "prompt is required and must be a non-empty string" },
       { status: 400 },
     );
   }
 
-  if (typeof projectId !== "string" || projectId.trim().length === 0) {
+  if (!trimmedProjectId) {
     return NextResponse.json(
       { error: "projectId is required and must be a non-empty string" },
       { status: 400 },
     );
   }
-
-  const trimmedPrompt = prompt.trim();
-  const trimmedProjectId = projectId.trim();
 
   const project = await getAccessibleProject(
     trimmedProjectId,
@@ -83,7 +90,9 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ runId: handle.id });
+    const publicToken = await createRunPublicToken(handle.id);
+
+    return NextResponse.json({ runId: handle.id, publicToken });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to trigger design task";

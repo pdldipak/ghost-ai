@@ -848,7 +848,8 @@ export const AI_CANVAS_PLAN_SCHEMA = {
     },
     summary: {
       type: "string" as const,
-      description: "Short description of the planned canvas changes.",
+      description:
+        "One or two professional sentences for the user describing what was added or changed on the canvas.",
     },
     operations: {
       type: "array" as const,

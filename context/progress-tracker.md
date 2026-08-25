@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Choose the next feature unit after room-scoped Architect chat (wire chat to the design API, or spec generation).
+- Choose the next feature unit after design-agent frontend wiring (spec generation is the remaining AI path).
 
 ## Completed
 
@@ -40,6 +40,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Design agent logic (`feature-specs/26-design-agent-logic.md`): `generate-architecture` uses Gemini to plan canvas operations, applies them through Liveblocks `mutateFlow`, and publishes AI presence (`cursor` / `isThinking`) plus room-event status (start / processing / complete / failure). No API or AI sidebar wiring.
 - AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
 - Sidebar chat feed (`feature-specs/28-sidebar-chat-feed.md`): room-scoped `ai-chat` RoomEvents in the Architect tab, validated payload in `types/tasks.ts`, sender/timestamp bubbles, send error on failure, no assistant placeholder. No design-API wiring, Storage, Feeds/Inbox, Prisma, or Blob.
+- Design agent frontend (`feature-specs/29-design-agent-frontend.md`): Architect submit posts to `/api/ai/design`, tracks the Trigger.dev run with `useRealtimeRun`, shows a compact status strip while active, and pushes a final Ghost AI chat message on completion. Canvas updates still come from Liveblocks. Gemini and starter prompts are professional and user-facing.
 
 ## In Progress
 
@@ -47,7 +48,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that room-scoped `ai-chat` is in place.
+- Spec generation from the current canvas graph (Specs tab is still a visual placeholder).
 
 ## Open Questions
 
@@ -120,7 +121,7 @@ Feature 24:
 - **Trigger.dev:** Background tasks live in `trigger/` (`dirs: ["./trigger"]`). Worker runtime is `node-22` to match the app. `@trigger.dev/sdk` 4.5.12, `@trigger.dev/build` 4.5.12, and CLI `trigger.dev` 4.5.12 are pinned together. `npm run dev` stays Next-only; run `npm run trigger:dev` in a second process. Prisma worker extension, React hooks, and AI tasks are deferred until those features are implemented. Trigger tasks from the app with type-only imports plus `tasks.trigger`, never by importing the task instance.
 Feature 25:
 - **Task runs:** Prisma `TaskRun` stores Trigger.dev `runId` (unique), `projectId` (cascade from `Project`), and the Clerk `userId` who triggered the run. Compound index on `(userId, projectId)`. No status or task-type fields.
-- **Design trigger API:** `POST /api/ai/design` accepts `{ prompt, projectId }`, requires Clerk + project membership (owner or collaborator), triggers `generate-architecture` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId }` without waiting for the job.
+- **Design trigger API:** `POST /api/ai/design` accepts `{ prompt, projectId }` (and `roomId` as an alias), requires Clerk + project membership (owner or collaborator), triggers `generate-architecture` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, mints a run-scoped public token, and returns `{ runId, publicToken }` without waiting for the job.
 - **Run token API:** `POST /api/ai/design/token` accepts `{ runId }` and mints `auth.createPublicToken` scoped to that run only. The token is issued only to the `TaskRun` owner who still has project access. Response is `{ token }`. Secret keys never leave the server.
 - **Design task:** Reuse `trigger/generate-architecture.ts` (`id: "generate-architecture"`, payload `{ projectId, prompt }`). It logs/echoes input only — no AI, Liveblocks, Prisma, or Blob. `projectId` is the Liveblocks room ID.
 Feature 26:
@@ -130,6 +131,10 @@ Feature 27:
 - **Shared AI activity:** Clients subscribe to the existing `ai-status` room events as `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`step`, optional `text`, fallback `message`) and is validated before display. Generation is active when the latest status is `start`/`processing` or any presence has `isThinking: true`. The AI sidebar shows the latest message, locks only the Architect composer, and live-cursor badges show a spinner while thinking. No Storage keys, Feeds/Inbox, new presence fields, or `/api/ai/design` wiring.
 Feature 28:
 - **Shared Architect chat:** Clients subscribe to a separate `ai-chat` RoomEvent channel (`AI_CHAT_FEED`), not `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`type`, `id`, `sender`, `senderId`, `role`, `content`, `timestamp`) and is validated before display. Human sends are `role: "user"` via `useBroadcastEvent`; the sender is Liveblocks `UserMeta.info.name`. Own messages stay right-aligned using `senderId`. No Storage, Feeds/Inbox, Comments, Prisma, Blob, or `/api/ai/design` wiring.
+Feature 29:
+- **Design frontend:** Architect submit broadcasts the user message, then `POST /api/ai/design` with `{ prompt, projectId }`. The route returns `{ runId, publicToken }`. The submitter tracks that run with `useRealtimeRun` (`enabled` only when both values exist). Collaborators lock via existing presence/status. Canvas nodes/edges are not written from the client.
+- **Completion chat:** On a terminal run status, the submitter broadcasts a `role: "assistant"` `ai-chat` message using the task `summary` (or a short failure note). A compact `ai-status-feed` strip sits above the composer only while a run is active.
+- **Prompts:** Gemini system/user prompts treat Ghost Assistant as a senior architect (incremental edits, readable layout, user-facing summary). Architect starter chips use the same tone.
 
 ## Session Notes
 

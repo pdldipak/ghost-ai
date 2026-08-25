@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useCallback, useState, type KeyboardEvent } from "react";
 import {
   Bot,
   Download,
@@ -19,6 +19,10 @@ import {
   useAiGenerationActive,
   useAiStatusFeed,
 } from "@/hooks/use-ai-status";
+import {
+  useDesignGeneration,
+  type DesignRunCompleteResult,
+} from "@/hooks/use-design-generation";
 import { cn } from "@/lib/utils";
 import {
   AI_CHAT_FEED,
@@ -29,9 +33,9 @@ import {
 } from "@/types/tasks";
 
 const STARTER_PROMPTS = [
-  "Design an e-commerce backend",
-  "Create a chat app architecture",
-  "Build a CI/CD pipeline",
+  "Design an e-commerce platform with checkout and payments",
+  "Map a real-time messaging architecture",
+  "Outline a CI/CD pipeline from commit to production",
 ] as const;
 
 const SEND_ERROR_TEXT = "Couldn't send message. Try again.";
@@ -46,20 +50,37 @@ const DEMO_SPEC = {
 interface AiSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  projectId: string;
 }
 
 interface AiChatFeed {
   messages: AiChatEvent[];
   sendMessage: (content: string) => boolean;
+  sendAssistantMessage: (content: string) => boolean;
   currentUserId: string | undefined;
 }
 
-export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
+export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   const status = useAiStatusFeed();
   const isGenerating = useAiGenerationActive(status);
   const statusText = status ? getAiStatusDisplayText(status) : "";
   const statusToneClass = getStatusToneClass(status);
   const chat = useAiChatFeed();
+  const sendAssistantMessage = chat.sendAssistantMessage;
+
+  const handleRunComplete = useCallback(
+    (result: DesignRunCompleteResult) => {
+      sendAssistantMessage(result.summary);
+    },
+    [sendAssistantMessage],
+  );
+
+  const generation = useDesignGeneration({
+    projectId,
+    onRunComplete: handleRunComplete,
+  });
+
+  const isBusy = isGenerating || generation.isActive;
 
   return (
     <aside
@@ -73,7 +94,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
       <div className="flex items-start justify-between gap-3 border-b border-surface-border px-4 py-3">
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-elevated text-ai-text">
-            {isGenerating ? (
+            {isBusy ? (
               <Loader2 className="size-4 animate-spin" aria-hidden />
             ) : (
               <Bot className="size-4" aria-hidden />
@@ -129,7 +150,15 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
           value="ai-architect"
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <AiArchitectTab isGenerating={isGenerating} chat={chat} />
+          <AiArchitectTab
+            isBusy={isBusy}
+            statusText={statusText}
+            statusToneClass={statusToneClass}
+            chat={chat}
+            triggerError={generation.error}
+            onClearTriggerError={generation.clearError}
+            onStartDesign={generation.startDesign}
+          />
         </TabsContent>
 
         <TabsContent
@@ -156,19 +185,31 @@ function getStatusToneClass(status: AiStatusEvent | null): string {
 }
 
 function AiArchitectTab({
-  isGenerating,
+  isBusy,
+  statusText,
+  statusToneClass,
   chat,
+  triggerError,
+  onClearTriggerError,
+  onStartDesign,
 }: {
-  isGenerating: boolean;
+  isBusy: boolean;
+  statusText: string;
+  statusToneClass: string;
   chat: AiChatFeed;
+  triggerError: string | null;
+  onClearTriggerError: () => void;
+  onStartDesign: (prompt: string) => Promise<boolean>;
 }) {
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
   const { messages, sendMessage, currentUserId } = chat;
+  const displayError = sendError ?? triggerError;
+  const showStatusStrip = isBusy && statusText.length > 0;
 
-  const submitDraft = () => {
+  const submitDraft = async () => {
     const trimmed = draft.trim();
-    if (trimmed.length === 0 || isGenerating) {
+    if (trimmed.length === 0 || isBusy) {
       return;
     }
 
@@ -181,6 +222,8 @@ function AiArchitectTab({
 
     setDraft("");
     setSendError(null);
+    onClearTriggerError();
+    await onStartDesign(trimmed);
   };
 
   const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -189,7 +232,7 @@ function AiArchitectTab({
     }
 
     event.preventDefault();
-    submitDraft();
+    void submitDraft();
   };
 
   return (
@@ -197,10 +240,11 @@ function AiArchitectTab({
       <ScrollArea className="min-h-0 flex-1">
         {messages.length === 0 ? (
           <ArchitectEmptyState
-            isGenerating={isGenerating}
+            isBusy={isBusy}
             onSelectPrompt={(prompt) => {
               setDraft(prompt);
               setSendError(null);
+              onClearTriggerError();
             }}
           />
         ) : (
@@ -220,6 +264,15 @@ function AiArchitectTab({
       </ScrollArea>
 
       <div className="border-t border-surface-border p-4">
+        {showStatusStrip ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className={cn("mb-3 truncate text-xs", statusToneClass)}
+          >
+            {statusText}
+          </p>
+        ) : null}
         <Textarea
           value={draft}
           onChange={(event) => {
@@ -227,25 +280,30 @@ function AiArchitectTab({
             if (sendError) {
               setSendError(null);
             }
+            if (triggerError) {
+              onClearTriggerError();
+            }
           }}
           onKeyDown={handleComposerKeyDown}
           placeholder="Describe the system you want to design"
-          className="min-h-[72px] max-h-40 resize-none overflow-y-auto"
+          className="min-h-[72px] max-h-40 resize-none overflow-y-auto bg-elevated text-copy caret-copy placeholder:text-copy-muted dark:bg-elevated dark:text-copy"
           aria-label="AI prompt"
-          disabled={isGenerating}
+          disabled={isBusy}
         />
         <Button
           type="button"
           className="mt-3 w-full bg-brand text-primary-foreground hover:bg-brand/80"
-          onClick={submitDraft}
-          disabled={isGenerating || draft.trim().length === 0}
+          onClick={() => {
+            void submitDraft();
+          }}
+          disabled={isBusy || draft.trim().length === 0}
         >
-          {isGenerating ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
-          {isGenerating ? "Working…" : "Send"}
+          {isBusy ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
+          {isBusy ? "Working…" : "Send"}
         </Button>
-        {sendError ? (
+        {displayError ? (
           <p className="mt-2 text-xs text-state-error" role="alert">
-            {sendError}
+            {displayError}
           </p>
         ) : null}
       </div>
@@ -254,10 +312,10 @@ function AiArchitectTab({
 }
 
 function ArchitectEmptyState({
-  isGenerating,
+  isBusy,
   onSelectPrompt,
 }: {
-  isGenerating: boolean;
+  isBusy: boolean;
   onSelectPrompt: (prompt: string) => void;
 }) {
   return (
@@ -266,16 +324,16 @@ function ArchitectEmptyState({
         <Bot className="size-5" aria-hidden />
       </div>
       <p className="mt-3 text-sm text-copy-muted">
-        Ask Ghost AI to sketch an architecture from a prompt.
+        Describe a system and Ghost AI will map it onto the shared canvas.
       </p>
       <div className="mt-4 flex w-full flex-col gap-2">
         {STARTER_PROMPTS.map((prompt) => (
           <button
             key={prompt}
             type="button"
-            className="rounded-full bg-elevated px-3 py-1.5 text-left text-xs text-ai-text disabled:opacity-50"
+            className="rounded-full border border-surface-border bg-elevated px-3 py-1.5 text-left text-xs text-copy hover:bg-accent-dim hover:text-brand disabled:opacity-50"
             onClick={() => onSelectPrompt(prompt)}
-            disabled={isGenerating}
+            disabled={isBusy}
           >
             {prompt}
           </button>
@@ -324,7 +382,7 @@ function ChatBubble({
             "rounded-2xl px-3 py-2 text-sm",
             isOwn
               ? "bg-accent-dim border-2 border-brand/50 text-copy"
-              : "border border-surface-border bg-elevated text-ai-text",
+              : "border border-surface-border bg-elevated text-copy",
           )}
         >
           {message.content}

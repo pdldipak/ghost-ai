@@ -8,7 +8,12 @@ import {
   useStatus,
 } from "@liveblocks/react/suspense";
 
-import { parseAiChatEvent, type AiChatEvent } from "@/types/tasks";
+import { AI_USER_ID, AI_USER_NAME } from "@/lib/ai-identity";
+import {
+  parseAiChatEvent,
+  type AiChatEvent,
+  type AiChatRole,
+} from "@/types/tasks";
 
 export { AI_CHAT_FEED } from "@/types/tasks";
 
@@ -42,8 +47,8 @@ export function useAiChatFeed() {
     setMessages((current) => appendMessage(current, parsed));
   });
 
-  const sendMessage = useCallback(
-    (content: string): boolean => {
+  const sendChatMessage = useCallback(
+    (content: string, role: AiChatRole): boolean => {
       const trimmed = content.trim();
 
       if (trimmed.length === 0) {
@@ -54,14 +59,18 @@ export function useAiChatFeed() {
         return false;
       }
 
-      const senderId = selfId?.trim() ?? "";
+      const isAssistant = role === "assistant";
+      const senderId = isAssistant ? AI_USER_ID : (selfId?.trim() ?? "");
+      const sender = isAssistant
+        ? AI_USER_NAME
+        : selfName.trim() || FALLBACK_SENDER;
       const timestamp = Date.now();
       const parsed = parseAiChatEvent({
         type: "ai-chat",
         id: `ai-chat-${senderId}-${timestamp}`,
-        sender: selfName.trim() || FALLBACK_SENDER,
+        sender,
         senderId,
-        role: "user",
+        role,
         content: trimmed,
         timestamp,
       });
@@ -81,5 +90,20 @@ export function useAiChatFeed() {
     [broadcast, connectionStatus, selfId, selfName],
   );
 
-  return { messages, sendMessage, currentUserId: selfId };
+  const sendMessage = useCallback(
+    (content: string): boolean => sendChatMessage(content, "user"),
+    [sendChatMessage],
+  );
+
+  const sendAssistantMessage = useCallback(
+    (content: string): boolean => sendChatMessage(content, "assistant"),
+    [sendChatMessage],
+  );
+
+  return {
+    messages,
+    sendMessage,
+    sendAssistantMessage,
+    currentUserId: selfId,
+  };
 }

@@ -67,22 +67,39 @@ function buildSystemPrompt(): string {
     (color) => `${color.label} (${color.fill})`,
   ).join(", ");
 
-  return `You are Ghost AI, an architecture designer for a collaborative React Flow canvas.
+  return `You are Ghost Assistant, a senior software architect for a collaborative system-design canvas.
 
-Turn the user prompt into canvas operations against the CURRENT diagram.
-Do not wipe the canvas unless the user clearly asks to replace it or generate a new design from scratch.
-If the canvas is empty, generate a new design (replaceGraph may be true).
+Translate the design request into a precise canvas operation plan. Collaborators may already be editing this diagram; treat the current graph as the source of truth.
 
-Rules:
+Objectives:
+- Model the request as a production architecture: services, APIs, data stores, queues, gateways, and the flows between them.
+- Prefer incremental edits. Set replaceGraph to true only when the canvas is empty, or when the user explicitly asks to replace, start over, or generate a new design.
+- Keep the diagram readable: short component labels, consistent spacing of about 80px, and no overlapping nodes.
+
+Canvas contract:
 - Nodes are type canvasNode with data.label, data.color, and data.shape.
 - Edges are type canvasEdge with data.label and four-side handles.
 - Allowed shapes: ${NODE_SHAPES.join(", ")}.
 - Allowed colors (use the fill hex): ${colors}. Default color: ${DEFAULT_NODE_COLOR}.
-- Place nodes with readable spacing (about 80px). Do not stack nodes on top of each other.
 - Connection handles: ${NODE_HANDLE_IDS.join(", ")}. Prefer sourceHandle "right" and targetHandle "left".
 - Supported operations: addNode, moveNode, resizeNode, updateNodeData, deleteNode, addEdge, deleteEdge.
-- Only move, resize, update, or delete nodes/edges that exist in the current diagram (or that you add earlier in this plan).
-- Keep labels short and specific to system components.`;
+- Only move, resize, update, or delete nodes and edges that already exist, or that this plan adds earlier.
+
+Summary:
+- Write summary as one or two professional sentences for the user.
+- Describe what was added or changed. Do not mention internal operation names, JSON, or implementation details.`;
+}
+
+function buildUserPrompt(snapshot: CanvasSnapshot, prompt: string): string {
+  return [
+    "CURRENT CANVAS",
+    serializeCanvasForPrompt(snapshot),
+    "",
+    "DESIGN REQUEST",
+    prompt,
+    "",
+    "Return a canvas operation plan that fulfills the design request against the current canvas.",
+  ].join("\n");
 }
 
 async function readCanvasSnapshot(roomId: string): Promise<CanvasSnapshot> {
@@ -167,13 +184,7 @@ export const generateArchitecture = task({
           schema: jsonSchema(AI_CANVAS_PLAN_SCHEMA),
         }),
         system: buildSystemPrompt(),
-        prompt: [
-          "Current canvas:",
-          serializeCanvasForPrompt(snapshot),
-          "",
-          "User prompt:",
-          prompt,
-        ].join("\n"),
+        prompt: buildUserPrompt(snapshot, prompt),
       });
 
       const plan = parseAiCanvasPlan(result.output, snapshot);

@@ -132,3 +132,27 @@ export function parseAiChatEvent(value: unknown): AiChatEvent | null {
 export function isAiChatEvent(value: unknown): value is AiChatEvent {
   return parseAiChatEvent(value) !== null;
 }
+
+export interface DesignTriggerResponse {
+  runId: string;
+  publicToken: string;
+}
+
+export function parseDesignTriggerResponse(
+  value: unknown,
+): DesignTriggerResponse | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const body = value as Record<string, unknown>;
+
+  if (!isNonEmptyString(body.runId) || !isNonEmptyString(body.publicToken)) {
+    return null;
+  }
+
+  return {
+    runId: body.runId.trim(),
+    publicToken: body.publicToken.trim(),
+  };
+}

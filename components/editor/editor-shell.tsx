@@ -120,6 +120,7 @@ export function EditorShell({
               <AiSidebar
                 isOpen={isAiSidebarOpen}
                 onClose={() => setIsAiSidebarOpen(false)}
+                projectId={activeProjectId}
               />
             </CanvasRoom>
           </>

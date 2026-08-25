@@ -1,8 +1,8 @@
-import { auth } from "@trigger.dev/sdk";
 import { NextResponse } from "next/server";
 
 import { getAccessibleProject, getClerkIdentity } from "@/lib/project-access";
 import { prisma } from "@/lib/prisma";
+import { createRunPublicToken } from "@/lib/trigger-public-token";
 
 export async function POST(request: Request) {
   const identity = await getClerkIdentity();
@@ -66,13 +66,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const token = await auth.createPublicToken({
-      scopes: {
-        read: {
-          runs: [trimmedRunId],
-        },
-      },
-    });
+    const token = await createRunPublicToken(trimmedRunId);
 
     return NextResponse.json({ token });
   } catch (error) {
