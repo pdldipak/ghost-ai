@@ -9,6 +9,7 @@ import {
 } from "@xyflow/react";
 
 import { EdgeLabel } from "@/components/editor/edge-label";
+import { useEdgeLabelEdit } from "@/components/editor/edge-label-edit-context";
 import { CANVAS_EDGE_STYLE } from "@/lib/canvas-edges";
 import {
   DEFAULT_EDGE_COLOR,
@@ -32,8 +33,9 @@ export function CanvasEdgeView({
   style,
 }: EdgeProps<CanvasEdge>) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const { editingEdgeId, beginEditing, stopEditing } = useEdgeLabelEdit();
   const label = data?.label ?? "";
+  const isEditing = editingEdgeId === id;
   const isActive = Boolean(selected) || isHovered || isEditing;
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
@@ -45,15 +47,14 @@ export function CanvasEdgeView({
     targetPosition,
   });
 
-  const startEditing = useCallback((event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsEditing(true);
-  }, []);
-
-  const stopEditing = useCallback(() => {
-    setIsEditing(false);
-  }, []);
+  const startEditing = useCallback(
+    (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      beginEditing(id);
+    },
+    [beginEditing, id],
+  );
 
   return (
     <>
@@ -86,8 +87,9 @@ export function CanvasEdgeView({
             edgeId={id}
             label={label}
             isEditing={isEditing}
-            onStartEditing={() => setIsEditing(true)}
-            onStopEditing={stopEditing}
+            showPlaceholder={isActive}
+            onStartEditing={() => beginEditing(id)}
+            onStopEditing={() => stopEditing(id)}
           />
         </div>
       </EdgeLabelRenderer>

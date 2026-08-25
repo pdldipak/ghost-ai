@@ -94,3 +94,21 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Added shared AI presence status in the sidebar, validated `ai-status` payloads, composer lock while thinking, and live-cursor spinners per `27-ai-presence-state.md` |
 | 2026-08-25 | Tightened `28-sidebar-chat-feed.md` into an implementation prompt against the local Architect demo thread, `ai-status-feed` room events, and existing sidebar composer |
 | 2026-08-25 | Added room-scoped Architect chat on a separate `ai-chat` feed with validated payloads, sender/timestamp bubbles, and send-error state per `28-sidebar-chat-feed.md` |
+| 2026-08-25 | Tightened `29-design-agent-frontend.md` into an implementation prompt against the existing design API, `ai-chat` feed, and `useRealtimeRun` |
+| 2026-08-25 | Wired Architect submit to `POST /api/ai/design` with run-scoped realtime tracking, a status strip, and a final assistant chat message per `29-design-agent-frontend.md` |
+| 2026-08-25 | Professionalized Gemini design prompts and Architect starter chips so the agent writes user-facing architecture summaries |
+| 2026-08-25 | Switched Architect starter chips and assistant bubbles to `text-copy` on `bg-elevated` so labels stay readable across themes |
+| 2026-08-25 | Set Architect composer text, caret, and placeholder to copy tokens so typed chat text contrasts with the dark input |
+| 2026-08-25 | Applied design-agent canvas mutations in one Liveblocks write and required a complete node/edge plan so prompts no longer leave a single gateway on the canvas |
+| 2026-08-25 | Switched design generation to an architecture graph (components and connections) compiled into canvas nodes so prompts produce the full system, not a single client |
+| 2026-08-25 | Opened an inline “Describe flow” editor when connecting nodes so users can label why an edge exists (for example Persistent order state) |
+| 2026-08-25 | Added a Chat tab between AI Architect and Specs so collaborators can discuss the design without starting canvas generation |
+| 2026-08-25 | Wired Chat questions to Gemini via `explain-architecture` so Ghost AI replies about the current canvas without changing the graph |
+| 2026-08-25 | Tightened `31-spec-generation-flow.md` into an implementation prompt against the existing design/chat trigger pattern, Liveblocks canvas snapshot, and Specs-tab placeholder |
+| 2026-08-25 | Added membership-gated spec trigger/token APIs and a Gemini `generate-spec` task that turns the Liveblocks canvas into Markdown without changing the graph |
+| 2026-08-25 | Tightened `33-spec-persistence-download.md` into an implementation prompt against the existing `generate-spec` task, canvas Blob helper, and Prisma multi-file schema |
+| 2026-08-25 | Added Prisma `ProjectSpec`, Blob persistence in `generate-spec`, and a membership-gated spec download route so generated Markdown can be stored and retrieved |
+| 2026-08-25 | Wired the Specs tab Generate Spec button to `/api/ai/spec` with realtime run tracking, result cards, and authenticated Markdown download |
+| 2026-08-25 | Added Markdown and PDF download choices on spec cards, converting stored Markdown to PDF on the fly |
+| 2026-08-25 | Persisted Architect chat, Chat, and spec cards per project, with a Save history toggle and a project-scoped Clear action |
+| 2026-08-25 | Replaced the browser confirm for clearing AI history with a themed EditorDialog modal |

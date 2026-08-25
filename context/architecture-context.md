@@ -24,11 +24,12 @@
 
 ## Storage Model
 
-- **Database**: metadata, ownership, relationships, and task run records.
+- **Database**: metadata, ownership, relationships, task run records, spec titles/snippets, and project-scoped AI chat history.
 - **Vercel Blob**: generated artifacts — canvas snapshots at `canvas/{projectId}.json` and specs at `specs/{projectId}/{specId}.md`.
-- Project records, spec records, and task run records live in PostgreSQL.
+- Project records, spec records, chat message records, and task run records live in PostgreSQL.
 - Canvas content and Markdown output are stored in and retrieved from Vercel Blob.
 - The blob URL is stored in the database (`canvasJsonPath`, `filePath`) as the reference to the artifact.
+- AI Architect chat, Chat, and spec cards are project-scoped. `Project.persistAiData` (default on) controls whether that history is loaded and saved. Clearing saved data is allowed only while persistence is off.
 
 ## Auth and Collaboration Model
 

@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       error instanceof Error
         ? error.message
         : "Failed to create run-scoped token";
-    console.error("POST /api/ai/design/token failed:", message);
+    console.error("POST /api/ai/spec/token failed:", message);
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

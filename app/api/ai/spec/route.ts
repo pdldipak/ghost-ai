@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { getAccessibleProject, getClerkIdentity } from "@/lib/project-access";
 import { prisma } from "@/lib/prisma";
 import { createRunPublicToken } from "@/lib/trigger-public-token";
-import type { generateArchitecture } from "@/trigger/generate-architecture";
+import { parseChatHistory } from "@/types/tasks";
+import type { generateSpec } from "@/trigger/generate-spec";
 
 function readNonEmptyString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -30,21 +31,14 @@ export async function POST(request: Request) {
   }
 
   const payload = body as {
-    prompt?: unknown;
     projectId?: unknown;
     roomId?: unknown;
+    history?: unknown;
   };
 
-  const trimmedPrompt = readNonEmptyString(payload.prompt);
   const trimmedProjectId =
     readNonEmptyString(payload.projectId) || readNonEmptyString(payload.roomId);
-
-  if (!trimmedPrompt) {
-    return NextResponse.json(
-      { error: "prompt is required and must be a non-empty string" },
-      { status: 400 },
-    );
-  }
+  const history = parseChatHistory(payload.history);
 
   if (!trimmedProjectId) {
     return NextResponse.json(
@@ -74,13 +68,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const handle = await tasks.trigger<typeof generateArchitecture>(
-      "generate-architecture",
-      {
-        projectId: trimmedProjectId,
-        prompt: trimmedPrompt,
-      },
-    );
+    const handle = await tasks.trigger<typeof generateSpec>("generate-spec", {
+      projectId: trimmedProjectId,
+      history,
+    });
 
     await prisma.taskRun.create({
       data: {
@@ -95,8 +86,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ runId: handle.id, publicToken });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to trigger design task";
-    console.error("POST /api/ai/design failed:", message);
+      error instanceof Error ? error.message : "Failed to trigger spec task";
+    console.error("POST /api/ai/spec failed:", message);
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

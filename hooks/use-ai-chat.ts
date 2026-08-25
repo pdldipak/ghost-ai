@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useBroadcastEvent,
   useEventListener,
@@ -8,7 +8,12 @@ import {
   useStatus,
 } from "@liveblocks/react/suspense";
 
-import { parseAiChatEvent, type AiChatEvent } from "@/types/tasks";
+import { AI_USER_ID, AI_USER_NAME } from "@/lib/ai-identity";
+import {
+  parseAiChatEvent,
+  type AiChatEvent,
+  type AiChatRole,
+} from "@/types/tasks";
 
 export { AI_CHAT_FEED } from "@/types/tasks";
 
@@ -25,12 +30,36 @@ function appendMessage(
   return [...current, incoming];
 }
 
-export function useAiChatFeed() {
-  const [messages, setMessages] = useState<AiChatEvent[]>([]);
+interface UseAiChatFeedOptions {
+  projectId: string;
+  seedMessages: AiChatEvent[];
+  seedGeneration: number;
+  persistEnabled: boolean;
+  onPersistMessage: (message: AiChatEvent) => void;
+}
+
+export function useAiChatFeed({
+  seedMessages,
+  seedGeneration,
+  persistEnabled,
+  onPersistMessage,
+}: UseAiChatFeedOptions) {
+  const [messages, setMessages] = useState<AiChatEvent[]>(seedMessages);
   const broadcast = useBroadcastEvent();
   const connectionStatus = useStatus();
   const selfId = useSelf((me) => me.id);
   const selfName = useSelf((me) => me.info.name);
+  const persistRef = useRef({ persistEnabled, onPersistMessage, seedMessages });
+  const [seenGeneration, setSeenGeneration] = useState(seedGeneration);
+
+  if (seenGeneration !== seedGeneration) {
+    setSeenGeneration(seedGeneration);
+    setMessages(seedMessages);
+  }
+
+  useEffect(() => {
+    persistRef.current = { persistEnabled, onPersistMessage, seedMessages };
+  }, [onPersistMessage, persistEnabled, seedMessages]);
 
   useEventListener(({ event }) => {
     const parsed = parseAiChatEvent(event);
@@ -40,10 +69,13 @@ export function useAiChatFeed() {
     }
 
     setMessages((current) => appendMessage(current, parsed));
+    if (persistRef.current.persistEnabled) {
+      persistRef.current.onPersistMessage(parsed);
+    }
   });
 
-  const sendMessage = useCallback(
-    (content: string): boolean => {
+  const sendChatMessage = useCallback(
+    (content: string, role: AiChatRole): boolean => {
       const trimmed = content.trim();
 
       if (trimmed.length === 0) {
@@ -54,14 +86,18 @@ export function useAiChatFeed() {
         return false;
       }
 
-      const senderId = selfId?.trim() ?? "";
+      const isAssistant = role === "assistant";
+      const senderId = isAssistant ? AI_USER_ID : (selfId?.trim() ?? "");
+      const sender = isAssistant
+        ? AI_USER_NAME
+        : selfName.trim() || FALLBACK_SENDER;
       const timestamp = Date.now();
       const parsed = parseAiChatEvent({
         type: "ai-chat",
         id: `ai-chat-${senderId}-${timestamp}`,
-        sender: selfName.trim() || FALLBACK_SENDER,
+        sender,
         senderId,
-        role: "user",
+        role,
         content: trimmed,
         timestamp,
       });
@@ -73,13 +109,38 @@ export function useAiChatFeed() {
       try {
         broadcast(parsed);
         setMessages((current) => appendMessage(current, parsed));
+        if (persistEnabled) {
+          onPersistMessage(parsed);
+        }
         return true;
       } catch {
         return false;
       }
     },
-    [broadcast, connectionStatus, selfId, selfName],
+    [
+      broadcast,
+      connectionStatus,
+      onPersistMessage,
+      persistEnabled,
+      selfId,
+      selfName,
+    ],
   );
 
-  return { messages, sendMessage, currentUserId: selfId };
+  const sendMessage = useCallback(
+    (content: string): boolean => sendChatMessage(content, "user"),
+    [sendChatMessage],
+  );
+
+  const sendAssistantMessage = useCallback(
+    (content: string): boolean => sendChatMessage(content, "assistant"),
+    [sendChatMessage],
+  );
+
+  return {
+    messages,
+    sendMessage,
+    sendAssistantMessage,
+    currentUserId: selfId,
+  };
 }

@@ -1,0 +1,16 @@
+model ProjectChatMessage {
+  id        String   @id @default(cuid())
+  projectId String
+  messageId String
+  sender    String
+  senderId  String
+  role      String
+  content   String
+  timestamp DateTime
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, messageId])
+  @@index([projectId, timestamp])
+}

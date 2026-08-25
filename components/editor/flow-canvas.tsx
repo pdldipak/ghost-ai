@@ -21,6 +21,10 @@ import { AiStatusFeed } from "@/components/editor/ai-status-feed";
 import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
+import {
+  EdgeLabelEditProvider,
+  useEdgeLabelEdit,
+} from "@/components/editor/edge-label-edit-context";
 import { LiveCursors } from "@/components/editor/live-cursors";
 import { PresenceAvatars } from "@/components/editor/presence-avatars";
 import { ShapePanel } from "@/components/editor/shape-panel";
@@ -187,6 +191,7 @@ function FlowCanvasInner({
 
   const { onDragOver, onDrop } = useShapeDrop(onNodesChange);
   const { onPointerMove, onPointerLeave } = useCursorPresence();
+  const { beginEditing } = useEdgeLabelEdit();
 
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -196,8 +201,9 @@ function FlowCanvasInner({
       }
 
       onEdgesChange([{ type: "add", item: edge }]);
+      window.setTimeout(() => beginEditing(edge.id), 0);
     },
-    [onEdgesChange],
+    [beginEditing, onEdgesChange],
   );
 
   const handleImportTemplate = useCallback(
@@ -303,13 +309,15 @@ export function FlowCanvas({
 }: FlowCanvasProps) {
   return (
     <ReactFlowProvider>
-      <FlowCanvasInner
-        projectId={projectId}
-        templatesOpen={templatesOpen}
-        onTemplatesOpenChange={onTemplatesOpenChange}
-        onSaveStatusChange={onSaveStatusChange}
-        saveNowRef={saveNowRef}
-      />
+      <EdgeLabelEditProvider>
+        <FlowCanvasInner
+          projectId={projectId}
+          templatesOpen={templatesOpen}
+          onTemplatesOpenChange={onTemplatesOpenChange}
+          onSaveStatusChange={onSaveStatusChange}
+          saveNowRef={saveNowRef}
+        />
+      </EdgeLabelEditProvider>
     </ReactFlowProvider>
   );
 }

@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Choose the next feature unit after room-scoped Architect chat (wire chat to the design API, or spec generation).
+- Specs tab can generate a spec and download it as Markdown or PDF, with project-scoped history when Save history is on.
 
 ## Completed
 
@@ -27,7 +27,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Node shapes (`feature-specs/13-node-shape.md`): `CanvasNodeView` renders CSS shapes (rectangle/pill/circle) and scaling SVG shapes (diamond/hexagon/cylinder) from Liveblocks node data; dragging a shape from the panel shows a ghost preview at the default drop size that follows the cursor and hides on drop or cancel.
 - Node editing (`feature-specs/14-node-editing.md`): selected `canvasNode` nodes show React Flow `NodeResizer` handles (min 48×32, accent-primary on the dark canvas); double-clicking the centered label overlays a textarea that writes `data.label` through `updateNodeData` / Liveblocks, with a faint `Label` placeholder when empty, and editing ends on blur or Escape without dragging or panning the canvas.
 - Node color toolbar (`feature-specs/15-nodes-color-toolbar.md`): selected `canvasNode` nodes show a floating `NodeToolbar` of `NODE_COLORS` swatches above the node; choosing a swatch writes `data.color` through `updateNodeData` / Liveblocks so fill and paired text color update immediately, with `nodrag` / `nopan` so toolbar clicks do not drag or pan.
-- Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); double-click edits the edge label at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`.
+- Edge behavior (`feature-specs/16-edge-behavior.md`): four-side connection handles fade in on node hover; new Liveblocks edges use a custom `canvasEdge` renderer (smooth-step routing, light rounded stroke, arrowhead, dim at rest, brighter on hover/select, wider invisible hit path); connecting two nodes opens an inline “Describe flow” label at the `getSmoothStepPath` midpoint (click chip or double-click stroke to edit later).
 - Canvas ergonomics (`feature-specs/17-canvas-ergonomics.md`): bottom-left pill control bar with zoom out/fit view/zoom in (animated React Flow viewport) and Liveblocks undo/redo (dimmed when empty); `useKeyboardShortcuts` handles `+`/`=`, `-`, Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z, and Cmd/Ctrl+Y while skipping editable fields; MiniMap removed.
 - Starter templates (`feature-specs/18-starter-template.md`): static `CANVAS_TEMPLATES` library (microservices, CI/CD pipeline, event-driven) in `starter-templates.ts`; workspace navbar Templates button opens `StarterTemplatesModal` with a scrollable card grid, lightweight SVG previews, and Import; import replaces the Liveblocks room graph via `onNodesChange` / `onEdgesChange` and fits the view.
 - Presence avatars and cursors (`feature-specs/19-presence-avatars-cursor.md`): workspace canvas shows a top-right collaborator avatar stack (photo or initials, max five, +N overflow) plus Clerk `UserButton`; navbar `UserButton` stays on editor home only; other users get live cursors from presence `cursor` in flow coordinates; current user (including extra tabs) is excluded from both avatars and cursors.
@@ -40,6 +40,13 @@ Update this file whenever the current phase, active feature, or implementation s
 - Design agent logic (`feature-specs/26-design-agent-logic.md`): `generate-architecture` uses Gemini to plan canvas operations, applies them through Liveblocks `mutateFlow`, and publishes AI presence (`cursor` / `isThinking`) plus room-event status (start / processing / complete / failure). No API or AI sidebar wiring.
 - AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
 - Sidebar chat feed (`feature-specs/28-sidebar-chat-feed.md`): room-scoped `ai-chat` RoomEvents in the Architect tab, validated payload in `types/tasks.ts`, sender/timestamp bubbles, send error on failure, no assistant placeholder. No design-API wiring, Storage, Feeds/Inbox, Prisma, or Blob.
+- Design agent frontend (`feature-specs/29-design-agent-frontend.md`): Architect submit posts to `/api/ai/design`, tracks the Trigger.dev run with `useRealtimeRun`, shows a compact status strip while active, and pushes a final Ghost AI chat message on completion. Canvas updates still come from Liveblocks. Gemini and starter prompts are professional and user-facing.
+- AI sidebar Chat tab (`feature-specs/30-ai-sidebar-chat-tab.md`): tab bar is AI Architect, Chat, Specs; Chat shows the shared `ai-chat` thread and sends room messages without starting design generation.
+- Chat replies (`feature-specs/31-chat-replies.md`): Chat submit posts to `/api/ai/chat`, runs `explain-architecture` against the current canvas, and pushes a Ghost AI `ai-chat` reply. The graph is not mutated.
+- Spec generation flow (`feature-specs/31-spec-generation-flow.md`): membership-gated `POST /api/ai/spec` triggers `generate-spec`, stores a `TaskRun`, and returns `{ runId, publicToken }`; `POST /api/ai/spec/token` mints a run-scoped token for the TaskRun owner; the task reads the Liveblocks canvas and returns `{ title, spec }` Markdown. No Specs-tab wiring, Prisma Spec model, or Blob persistence.
+- Spec persistence and download (`feature-specs/33-spec-persistence-download.md`): Prisma `ProjectSpec` metadata with `filePath`; `generate-spec` uploads Markdown to Vercel Blob at `specs/{projectId}/{specId}.md` and returns `{ title, spec, specId }`; membership-gated `GET /api/projects/[projectId]/specs/[specId]/download` streams a Markdown attachment. No Specs-tab wiring.
+- Specs tab frontend: Generate Spec posts to `/api/ai/spec`, tracks the run with `useRealtimeRun`, replaces the demo card with the generated title/snippet, and offers Markdown or PDF download through the spec download route. Architect and Chat stay on their own loops.
+- Project-scoped AI history: Architect/Chat messages and spec cards persist per project, survive refresh and project switching, and stay isolated. A Save history toggle and Clear (when off) control stored chat and specs.
 
 ## In Progress
 
@@ -47,7 +54,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that room-scoped `ai-chat` is in place.
+- None.
 
 ## Open Questions
 
@@ -91,7 +98,7 @@ Feature 15:
 Feature 16:
 - **Connection handles:** Each `canvasNode` exposes source handles on top, right, bottom, and left (`NODE_HANDLE_IDS`). Handles are 8px white dots with a dark `--bg-base` border, hidden until the node is hovered (or a connection is in progress). `ConnectionMode.Loose` lets any handle connect to any other handle.
 - **Custom edges:** New connections are added through Liveblocks `onEdgesChange` as type `canvasEdge` with `data.label`, a light `#f8fafc` rounded stroke, and a closed arrow marker. The renderer uses `getSmoothStepPath` for right-angle routing, dims the stroke at rest, brightens on hover/select, and keeps a wider invisible `interactionWidth` so edges are easier to click without looking thicker.
-- **Inline edge labels:** Double-clicking an edge opens an input at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`. Label text is stored in collaborative `edge.data.label` through `updateEdgeData`; the input grows with a hidden sizer span. No server persistence.
+- **Inline edge labels:** Connecting two nodes opens an input at the `getSmoothStepPath` midpoint via `EdgeLabelRenderer`. Hover/select on an unlabeled edge shows `Describe flow`; click the chip or double-click the stroke to edit. Label text is stored in collaborative `edge.data.label` through `updateEdgeData`; the input grows with a hidden sizer span. No server persistence.
 Feature 17:
 - **Canvas control bar:** Floating pill at the bottom-left of the canvas (`z-20`, above the shape panel) with zoom out / fit view / zoom in and undo / redo, separated by a thin divider. Zoom calls `zoomIn` / `zoomOut` / `fitView` on the React Flow instance with a 200ms duration. Undo/redo use Liveblocks `useUndo` / `useRedo` / `useCanUndo` / `useCanRedo`; disabled buttons stay dimmed.
 - **Keyboard shortcuts:** `hooks/use-keyboard-shortcuts.ts` listens on `window` and skips `input`, `textarea`, `select`, and contenteditable targets. `+`/`=` zoom in, `-` zooms out, Cmd/Ctrl+Z undoes, Cmd/Ctrl+Shift+Z and Cmd/Ctrl+Y redo. MiniMap is no longer rendered.
@@ -103,7 +110,7 @@ Feature 19:
 - **Live cursors:** Presence `cursor` is updated from React Flow pointer move via `screenToFlowPosition` and cleared on leave. Other connections render a colored pointer and name badge inside `ViewportPortal` so they follow pan/zoom; the current user never sees their own cursor. Presence types stay `cursor` and `isThinking`; `isThinking` is unused in this feature.
 Feature 20:
 - **AI sidebar shell:** Workspace-only `AiSidebar` in `components/editor/ai-sidebar.tsx` replaces the inline placeholder. Open/close stays on `EditorShell` (`isAiSidebarOpen`) and the existing navbar toggle. The panel is a fixed right overlay (`top-12`, `z-40`, `w-80`) that stays mounted and slides with `translate-x-full` / `translate-x-0`, matching `ProjectSidebar` so the canvas layout does not shrink.
-- **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
+- **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Chat`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
 Feature 21:
 - **Canvas persistence:** Prisma `canvasJsonPath` stores the Vercel Blob URL only. Placeholder paths (`canvas/{projectId}.json`, `pending`) mean no snapshot. Blob JSON lives at `canvas/{projectId}.json` with overwrite and no random suffix. Uploads try private then public access so either store type works. Owner or collaborator may GET/PUT via `/api/projects/[projectId]/canvas`.
 - **Autosave + restore:** `useCanvasAutosave` hydrates empty Liveblocks rooms from blob once, then debounce-saves at 1500ms. Non-empty rooms are never overwritten from blob. Workspace navbar Save control flushes immediately and shows idle/saving/saved/error.
@@ -120,7 +127,7 @@ Feature 24:
 - **Trigger.dev:** Background tasks live in `trigger/` (`dirs: ["./trigger"]`). Worker runtime is `node-22` to match the app. `@trigger.dev/sdk` 4.5.12, `@trigger.dev/build` 4.5.12, and CLI `trigger.dev` 4.5.12 are pinned together. `npm run dev` stays Next-only; run `npm run trigger:dev` in a second process. Prisma worker extension, React hooks, and AI tasks are deferred until those features are implemented. Trigger tasks from the app with type-only imports plus `tasks.trigger`, never by importing the task instance.
 Feature 25:
 - **Task runs:** Prisma `TaskRun` stores Trigger.dev `runId` (unique), `projectId` (cascade from `Project`), and the Clerk `userId` who triggered the run. Compound index on `(userId, projectId)`. No status or task-type fields.
-- **Design trigger API:** `POST /api/ai/design` accepts `{ prompt, projectId }`, requires Clerk + project membership (owner or collaborator), triggers `generate-architecture` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId }` without waiting for the job.
+- **Design trigger API:** `POST /api/ai/design` accepts `{ prompt, projectId }` (and `roomId` as an alias), requires Clerk + project membership (owner or collaborator), triggers `generate-architecture` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, mints a run-scoped public token, and returns `{ runId, publicToken }` without waiting for the job.
 - **Run token API:** `POST /api/ai/design/token` accepts `{ runId }` and mints `auth.createPublicToken` scoped to that run only. The token is issued only to the `TaskRun` owner who still has project access. Response is `{ token }`. Secret keys never leave the server.
 - **Design task:** Reuse `trigger/generate-architecture.ts` (`id: "generate-architecture"`, payload `{ projectId, prompt }`). It logs/echoes input only — no AI, Liveblocks, Prisma, or Blob. `projectId` is the Liveblocks room ID.
 Feature 26:
@@ -130,6 +137,25 @@ Feature 27:
 - **Shared AI activity:** Clients subscribe to the existing `ai-status` room events as `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`step`, optional `text`, fallback `message`) and is validated before display. Generation is active when the latest status is `start`/`processing` or any presence has `isThinking: true`. The AI sidebar shows the latest message, locks only the Architect composer, and live-cursor badges show a spinner while thinking. No Storage keys, Feeds/Inbox, new presence fields, or `/api/ai/design` wiring.
 Feature 28:
 - **Shared Architect chat:** Clients subscribe to a separate `ai-chat` RoomEvent channel (`AI_CHAT_FEED`), not `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`type`, `id`, `sender`, `senderId`, `role`, `content`, `timestamp`) and is validated before display. Human sends are `role: "user"` via `useBroadcastEvent`; the sender is Liveblocks `UserMeta.info.name`. Own messages stay right-aligned using `senderId`. No Storage, Feeds/Inbox, Comments, Prisma, Blob, or `/api/ai/design` wiring.
+Feature 29:
+- **Design frontend:** Architect submit broadcasts the user message, then `POST /api/ai/design` with `{ prompt, projectId }`. The route returns `{ runId, publicToken }`. The submitter tracks that run with `useRealtimeRun` (`enabled` only when both values exist). Collaborators lock via existing presence/status. Canvas nodes/edges are not written from the client.
+- **Completion chat:** On a terminal run status, the submitter broadcasts a `role: "assistant"` `ai-chat` message using the task `summary` (or a short failure note). A compact `ai-status-feed` strip sits above the composer only while a run is active.
+- **Prompts:** Gemini system/user prompts treat Ghost Assistant as a senior architect (incremental edits, readable layout, user-facing summary). Architect starter chips use the same tone.
+Feature 30:
+- **Chat tab:** AI Workspace tabs are `AI Architect`, `Chat`, and `Specs`. Chat reads and writes the existing `ai-chat` feed. Chat send is room chat only — it does not call `/api/ai/design`. Architect composer lock while generating is unchanged; Chat stays usable.
+Feature 31:
+- **Chat replies:** `POST /api/ai/chat` triggers `explain-architecture` with `{ projectId, prompt, history? }`, stores a `TaskRun`, and returns `{ runId, publicToken }`. The task reads the Liveblocks canvas, asks Gemini for a text answer, and returns `{ summary }`. It does not mutate nodes/edges or publish `ai-status`. The Chat tab tracks the run with `useRealtimeRun` and broadcasts the reply on `ai-chat`.
+Feature 32:
+- **Spec generation backend:** `POST /api/ai/spec` accepts `{ projectId }` (`roomId` alias) and optional `history`, requires Clerk + project membership, triggers `generate-spec` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId, publicToken }`. `POST /api/ai/spec/token` mints a run-scoped public token only for the TaskRun owner who still has project access. The worker reads the Liveblocks graph (`readCanvasSnapshot`); it does not accept client nodes/edges, mutate the canvas, or publish `ai-status`. Output is `{ title, spec }` Markdown. Specs are not persisted to Prisma or Blob in this unit.
+Feature 33:
+- **Spec persistence:** Prisma `ProjectSpec` stores metadata only (`id`, `projectId`, `filePath`, `createdAt`) with cascade delete and `(projectId, createdAt)` index. Markdown is uploaded to Vercel Blob at `specs/{projectId}/{specId}.md` (private then public, overwrite, no random suffix) via `lib/spec-blob.ts`. `generate-spec` creates the row after Gemini returns, stores the blob URL on `filePath`, and returns `{ title, spec, specId }` without the blob URL. Persistence failures abort the run.
+- **Spec download:** `GET /api/projects/[projectId]/specs/[specId]/download` requires Clerk and project membership (owner or collaborator). It verifies the spec belongs to that project, fetches Markdown from Blob, and returns a `text/markdown` attachment. Missing/unauthorized project or spec → `404`; blob fetch failure → `502`. Blob URLs are not exposed. No Specs-tab UI or list route.
+Feature 34:
+- **Specs tab frontend:** Generate Spec calls `POST /api/ai/spec` with `{ projectId }` and optional `ai-chat` history, tracks the run with `useRealtimeRun` (`hooks/use-spec-generation.ts`), and shows a card with title, snippet, and Markdown/PDF download. Download fetches `/api/projects/[projectId]/specs/[specId]/download?format=` as a blob so the workspace is not left. Spec generation does not publish `ai-status`, lock Architect, or mutate the canvas. Cards are session-only; there is still no specs list API.
+- **Download formats:** `format=markdown` (default) returns the stored Markdown. `format=pdf` converts that Markdown to a PDF on the fly with `pdf-lib` (`lib/spec-pdf.ts`). PDF files are not stored in Blob.
+Feature 35:
+- **Project AI history:** `Project.persistAiData` defaults to true. Architect/Chat messages live in `ProjectChatMessage` (unique per project + message id). Spec cards load from `ProjectSpec` (`title`, `snippet`). GET/PATCH/DELETE `/api/projects/[projectId]/ai-memory` and POST `.../messages` are membership-gated. History is isolated by `projectId`.
+- **Toggle and clear:** Save history on loads and writes chat/specs for that project. Save history off keeps the current session only and shows Clear, which deletes that project’s chat rows, spec rows, and spec blobs. Canvas autosave is unchanged.
 
 ## Session Notes
 
@@ -141,7 +167,7 @@ Feature 28:
 - **Prisma:** Prisma 7.8.0 – generated client goes to `app/generated/prisma/`; import `PrismaClient` from `@/app/generated/prisma/client` (no `index.ts` in v7). Direct Postgres uses `{ adapter }` with `@prisma/adapter-pg`; Accelerate URLs (`prisma+postgress://`) use `{ accelerateUrl }` plus `withAccelerate()`. Client is a lazy proxy so `next build` does not require `DATABASE_URL`.
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
-- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`; generated specs overwrite `specs/{projectId}/{specId}.md`.
 - **Trigger.dev:** `@trigger.dev/sdk` ^4.5.12, `@trigger.dev/build` ^4.5.12, CLI `trigger.dev` ^4.5.12; `trigger.config.ts` project ref `proj_bzliuuxkcnmpifganxmx`; tasks in `trigger/`; worker `runtime: "node-22"`.
 - **Gemini:** `@ai-sdk/google` ^4.0.51 with the `ai` SDK; design generation uses `GOOGLE_AI_API_KEY` first (then `GOOGLE_GENERATIVE_AI_API_KEY`, then `GEMINI_API_KEY`) and `gemini-3.6-flash`.
 - **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

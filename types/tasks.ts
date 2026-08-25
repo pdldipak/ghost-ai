@@ -132,3 +132,160 @@ export function parseAiChatEvent(value: unknown): AiChatEvent | null {
 export function isAiChatEvent(value: unknown): value is AiChatEvent {
   return parseAiChatEvent(value) !== null;
 }
+
+export interface ChatHistoryTurn {
+  role: AiChatRole;
+  content: string;
+}
+
+const MAX_CHAT_HISTORY_TURNS = 8;
+const MAX_CHAT_HISTORY_CHARS = 2000;
+
+export function parseChatHistory(value: unknown): ChatHistoryTurn[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const turns: ChatHistoryTurn[] = [];
+
+  for (const item of value.slice(-MAX_CHAT_HISTORY_TURNS)) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) {
+      continue;
+    }
+
+    const turn = item as Record<string, unknown>;
+
+    if (!isAiChatRole(turn.role) || !isNonEmptyString(turn.content)) {
+      continue;
+    }
+
+    turns.push({
+      role: turn.role,
+      content: turn.content.trim().slice(0, MAX_CHAT_HISTORY_CHARS),
+    });
+  }
+
+  return turns;
+}
+
+export interface DesignTriggerResponse {
+  runId: string;
+  publicToken: string;
+}
+
+export function parseDesignTriggerResponse(
+  value: unknown,
+): DesignTriggerResponse | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const body = value as Record<string, unknown>;
+
+  if (!isNonEmptyString(body.runId) || !isNonEmptyString(body.publicToken)) {
+    return null;
+  }
+
+  return {
+    runId: body.runId.trim(),
+    publicToken: body.publicToken.trim(),
+  };
+}
+
+export interface SpecRunOutput {
+  title: string;
+  spec: string;
+  specId: string;
+}
+
+export function parseSpecRunOutput(value: unknown): SpecRunOutput | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const output = value as Record<string, unknown>;
+
+  if (
+    !isNonEmptyString(output.title) ||
+    !isNonEmptyString(output.spec) ||
+    !isNonEmptyString(output.specId)
+  ) {
+    return null;
+  }
+
+  return {
+    title: output.title.trim(),
+    spec: output.spec.trim(),
+    specId: output.specId.trim(),
+  };
+}
+
+export interface StoredSpecCard {
+  specId: string;
+  title: string;
+  snippet: string;
+}
+
+export interface AiMemorySnapshot {
+  persistAiData: boolean;
+  hasSavedData: boolean;
+  messages: AiChatEvent[];
+  specs: StoredSpecCard[];
+}
+
+export function parseStoredSpecCard(value: unknown): StoredSpecCard | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const card = value as Record<string, unknown>;
+
+  if (!isNonEmptyString(card.specId) || !isNonEmptyString(card.title)) {
+    return null;
+  }
+
+  return {
+    specId: card.specId.trim(),
+    title: card.title.trim(),
+    snippet: typeof card.snippet === "string" ? card.snippet.trim() : "",
+  };
+}
+
+export function parseAiMemorySnapshot(value: unknown): AiMemorySnapshot | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const body = value as Record<string, unknown>;
+
+  if (typeof body.persistAiData !== "boolean" || typeof body.hasSavedData !== "boolean") {
+    return null;
+  }
+
+  if (!Array.isArray(body.messages) || !Array.isArray(body.specs)) {
+    return null;
+  }
+
+  const messages: AiChatEvent[] = [];
+  for (const item of body.messages) {
+    const parsed = parseAiChatEvent(item);
+    if (parsed) {
+      messages.push(parsed);
+    }
+  }
+
+  const specs: StoredSpecCard[] = [];
+  for (const item of body.specs) {
+    const parsed = parseStoredSpecCard(item);
+    if (parsed) {
+      specs.push(parsed);
+    }
+  }
+
+  return {
+    persistAiData: body.persistAiData,
+    hasSavedData: body.hasSavedData,
+    messages,
+    specs,
+  };
+}

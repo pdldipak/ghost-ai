@@ -1,19 +1,21 @@
+import {
+  AI_USER_COLOR,
+  AI_USER_ID,
+  AI_USER_NAME,
+} from "@/lib/ai-identity";
 import { liveblocks } from "@/lib/liveblocks";
 import type { AiStatusEvent, AiStatusStep } from "@/types/tasks";
 
 export type { AiStatusEvent, AiStatusStep } from "@/types/tasks";
-
-export const AI_USER_ID = "ghost-ai";
-export const AI_USER_NAME = "Ghost AI";
-export const AI_USER_COLOR = "#6457f9";
+export { AI_USER_COLOR, AI_USER_ID, AI_USER_NAME };
 export const AI_PRESENCE_TTL_SECONDS = 120;
 export const AI_PRESENCE_LEAVE_TTL_SECONDS = 2;
 
 export const AI_STATUS_MESSAGES: Record<AiStatusStep, string> = {
-  start: "Ghost AI started designing…",
-  processing: "Ghost AI is updating the canvas…",
-  complete: "Ghost AI finished designing.",
-  failure: "Ghost AI could not complete this design.",
+  start: "Analyzing the request and current canvas…",
+  processing: "Updating the architecture on the canvas…",
+  complete: "Architecture update complete.",
+  failure: "Unable to complete this architecture update.",
 };
 
 interface AiPresenceInput {

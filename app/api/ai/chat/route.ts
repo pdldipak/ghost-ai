@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { getAccessibleProject, getClerkIdentity } from "@/lib/project-access";
 import { prisma } from "@/lib/prisma";
 import { createRunPublicToken } from "@/lib/trigger-public-token";
-import type { generateArchitecture } from "@/trigger/generate-architecture";
+import { parseChatHistory } from "@/types/tasks";
+import type { explainArchitecture } from "@/trigger/explain-architecture";
 
 function readNonEmptyString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -33,11 +34,13 @@ export async function POST(request: Request) {
     prompt?: unknown;
     projectId?: unknown;
     roomId?: unknown;
+    history?: unknown;
   };
 
   const trimmedPrompt = readNonEmptyString(payload.prompt);
   const trimmedProjectId =
     readNonEmptyString(payload.projectId) || readNonEmptyString(payload.roomId);
+  const history = parseChatHistory(payload.history);
 
   if (!trimmedPrompt) {
     return NextResponse.json(
@@ -74,11 +77,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const handle = await tasks.trigger<typeof generateArchitecture>(
-      "generate-architecture",
+    const handle = await tasks.trigger<typeof explainArchitecture>(
+      "explain-architecture",
       {
         projectId: trimmedProjectId,
         prompt: trimmedPrompt,
+        history,
       },
     );
 
@@ -95,8 +99,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ runId: handle.id, publicToken });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to trigger design task";
-    console.error("POST /api/ai/design failed:", message);
+      error instanceof Error ? error.message : "Failed to trigger chat task";
+    console.error("POST /api/ai/chat failed:", message);
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }
