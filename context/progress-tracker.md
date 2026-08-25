@@ -41,6 +41,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
 - Sidebar chat feed (`feature-specs/28-sidebar-chat-feed.md`): room-scoped `ai-chat` RoomEvents in the Architect tab, validated payload in `types/tasks.ts`, sender/timestamp bubbles, send error on failure, no assistant placeholder. No design-API wiring, Storage, Feeds/Inbox, Prisma, or Blob.
 - Design agent frontend (`feature-specs/29-design-agent-frontend.md`): Architect submit posts to `/api/ai/design`, tracks the Trigger.dev run with `useRealtimeRun`, shows a compact status strip while active, and pushes a final Ghost AI chat message on completion. Canvas updates still come from Liveblocks. Gemini and starter prompts are professional and user-facing.
+- AI sidebar Chat tab (`feature-specs/30-ai-sidebar-chat-tab.md`): tab bar is AI Architect, Chat, Specs; Chat shows the shared `ai-chat` thread and sends room messages without starting design generation.
+- Chat replies (`feature-specs/31-chat-replies.md`): Chat submit posts to `/api/ai/chat`, runs `explain-architecture` against the current canvas, and pushes a Ghost AI `ai-chat` reply. The graph is not mutated.
 
 ## In Progress
 
@@ -104,7 +106,7 @@ Feature 19:
 - **Live cursors:** Presence `cursor` is updated from React Flow pointer move via `screenToFlowPosition` and cleared on leave. Other connections render a colored pointer and name badge inside `ViewportPortal` so they follow pan/zoom; the current user never sees their own cursor. Presence types stay `cursor` and `isThinking`; `isThinking` is unused in this feature.
 Feature 20:
 - **AI sidebar shell:** Workspace-only `AiSidebar` in `components/editor/ai-sidebar.tsx` replaces the inline placeholder. Open/close stays on `EditorShell` (`isAiSidebarOpen`) and the existing navbar toggle. The panel is a fixed right overlay (`top-12`, `z-40`, `w-80`) that stays mounted and slides with `translate-x-full` / `translate-x-0`, matching `ProjectSidebar` so the canvas layout does not shrink.
-- **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
+- **Sidebar UI only:** Header (`AI Workspace` / `Collaborate with Ghost AI`), shadcn `Tabs` (`AI Architect`, `Chat`, `Specs`), local Architect chat (empty chips fill the input; send appends a user bubble plus a hardcoded assistant placeholder), and a visual Specs tab (`Generate Spec` is a no-op, one demo card with a disabled download). No APIs, Liveblocks chat, or generation tasks.
 Feature 21:
 - **Canvas persistence:** Prisma `canvasJsonPath` stores the Vercel Blob URL only. Placeholder paths (`canvas/{projectId}.json`, `pending`) mean no snapshot. Blob JSON lives at `canvas/{projectId}.json` with overwrite and no random suffix. Uploads try private then public access so either store type works. Owner or collaborator may GET/PUT via `/api/projects/[projectId]/canvas`.
 - **Autosave + restore:** `useCanvasAutosave` hydrates empty Liveblocks rooms from blob once, then debounce-saves at 1500ms. Non-empty rooms are never overwritten from blob. Workspace navbar Save control flushes immediately and shows idle/saving/saved/error.
@@ -135,6 +137,10 @@ Feature 29:
 - **Design frontend:** Architect submit broadcasts the user message, then `POST /api/ai/design` with `{ prompt, projectId }`. The route returns `{ runId, publicToken }`. The submitter tracks that run with `useRealtimeRun` (`enabled` only when both values exist). Collaborators lock via existing presence/status. Canvas nodes/edges are not written from the client.
 - **Completion chat:** On a terminal run status, the submitter broadcasts a `role: "assistant"` `ai-chat` message using the task `summary` (or a short failure note). A compact `ai-status-feed` strip sits above the composer only while a run is active.
 - **Prompts:** Gemini system/user prompts treat Ghost Assistant as a senior architect (incremental edits, readable layout, user-facing summary). Architect starter chips use the same tone.
+Feature 30:
+- **Chat tab:** AI Workspace tabs are `AI Architect`, `Chat`, and `Specs`. Chat reads and writes the existing `ai-chat` feed. Chat send is room chat only — it does not call `/api/ai/design`. Architect composer lock while generating is unchanged; Chat stays usable.
+Feature 31:
+- **Chat replies:** `POST /api/ai/chat` triggers `explain-architecture` with `{ projectId, prompt, history? }`, stores a `TaskRun`, and returns `{ runId, publicToken }`. The task reads the Liveblocks canvas, asks Gemini for a text answer, and returns `{ summary }`. It does not mutate nodes/edges or publish `ai-status`. The Chat tab tracks the run with `useRealtimeRun` and broadcasts the reply on `ai-chat`.
 
 ## Session Notes
 

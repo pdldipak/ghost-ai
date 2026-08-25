@@ -133,6 +133,41 @@ export function isAiChatEvent(value: unknown): value is AiChatEvent {
   return parseAiChatEvent(value) !== null;
 }
 
+export interface ChatHistoryTurn {
+  role: AiChatRole;
+  content: string;
+}
+
+const MAX_CHAT_HISTORY_TURNS = 8;
+const MAX_CHAT_HISTORY_CHARS = 2000;
+
+export function parseChatHistory(value: unknown): ChatHistoryTurn[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const turns: ChatHistoryTurn[] = [];
+
+  for (const item of value.slice(-MAX_CHAT_HISTORY_TURNS)) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) {
+      continue;
+    }
+
+    const turn = item as Record<string, unknown>;
+
+    if (!isAiChatRole(turn.role) || !isNonEmptyString(turn.content)) {
+      continue;
+    }
+
+    turns.push({
+      role: turn.role,
+      content: turn.content.trim().slice(0, MAX_CHAT_HISTORY_CHARS),
+    });
+  }
+
+  return turns;
+}
+
 export interface DesignTriggerResponse {
   runId: string;
   publicToken: string;

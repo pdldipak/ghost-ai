@@ -15,6 +15,7 @@ import {
   type AiCanvasPlan,
   type CanvasSnapshot,
 } from "@/lib/ai-canvas-plan";
+import { readCanvasSnapshot } from "@/lib/ai-canvas-snapshot";
 import {
   AI_STATUS_MESSAGES,
   clearAiPresence,
@@ -23,6 +24,7 @@ import {
 } from "@/lib/ai-room";
 import { generateText, jsonSchema, Output } from "@/lib/ai-sdk";
 import { isFinitePosition } from "@/lib/canvas-nodes";
+import { getGeminiApiKey } from "@/lib/gemini";
 import { liveblocks } from "@/lib/liveblocks";
 import {
   NODE_COLORS,
@@ -51,11 +53,8 @@ function readPayloadString(...values: unknown[]): string {
   return "";
 }
 
-function getGeminiApiKey(): string {
-  const key =
-    process.env.GOOGLE_AI_API_KEY?.trim() ||
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
-    process.env.GEMINI_API_KEY?.trim();
+function getGeminiApiKeyOrThrow(): string {
+  const key = getGeminiApiKey();
 
   if (!key) {
     throw new AbortTaskRunError(
@@ -250,22 +249,6 @@ async function requestCanvasPlan(
   return graphToPlan(graph, snapshot);
 }
 
-async function readCanvasSnapshot(roomId: string): Promise<CanvasSnapshot> {
-  let snapshot: CanvasSnapshot = { nodes: [], edges: [] };
-
-  await mutateFlow<CanvasNode, CanvasEdge>(
-    { client: liveblocks, roomId },
-    (flow) => {
-      snapshot = {
-        nodes: [...flow.nodes],
-        edges: [...flow.edges],
-      };
-    },
-  );
-
-  return snapshot;
-}
-
 export const generateArchitecture = task({
   id: "generate-architecture",
   retry: {
@@ -295,7 +278,7 @@ export const generateArchitecture = task({
       ctx.attempt.number,
     );
 
-    const apiKey = getGeminiApiKey();
+    const apiKey = getGeminiApiKeyOrThrow();
     let applied = false;
     let publishedFailure = false;
 

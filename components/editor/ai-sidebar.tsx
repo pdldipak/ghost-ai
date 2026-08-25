@@ -19,6 +19,7 @@ import {
   useAiGenerationActive,
   useAiStatusFeed,
 } from "@/hooks/use-ai-status";
+import { useChatReply } from "@/hooks/use-chat-reply";
 import {
   useDesignGeneration,
   type DesignRunCompleteResult,
@@ -40,6 +41,9 @@ const STARTER_PROMPTS = [
 
 const SEND_ERROR_TEXT = "Couldn't send message. Try again.";
 const FALLBACK_SENDER = "Guest";
+
+const TAB_TRIGGER_CLASS =
+  "px-1 text-xs text-copy-muted data-active:bg-accent-dim data-active:text-brand dark:data-active:border-transparent dark:data-active:bg-accent-dim dark:data-active:text-brand";
 
 const DEMO_SPEC = {
   title: "Checkout service architecture",
@@ -79,8 +83,14 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
     projectId,
     onRunComplete: handleRunComplete,
   });
+  const chatReply = useChatReply({
+    projectId,
+    onRunComplete: handleRunComplete,
+  });
 
   const isBusy = isGenerating || generation.isActive;
+  const isChatBusy = chatReply.isActive;
+  const headerBusy = isBusy || isChatBusy;
 
   return (
     <aside
@@ -94,7 +104,7 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
       <div className="flex items-start justify-between gap-3 border-b border-surface-border px-4 py-3">
         <div className="flex min-w-0 items-start gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-elevated text-ai-text">
-            {isBusy ? (
+            {headerBusy ? (
               <Loader2 className="size-4 animate-spin" aria-hidden />
             ) : (
               <Bot className="size-4" aria-hidden />
@@ -102,7 +112,11 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-medium text-copy">AI Workspace</h2>
-            {statusText ? (
+            {isChatBusy ? (
+              <p role="status" aria-live="polite" className="truncate text-xs text-ai-text">
+                Thinking…
+              </p>
+            ) : statusText ? (
               <p
                 role="status"
                 aria-live="polite"
@@ -131,17 +145,14 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
         defaultValue="ai-architect"
         className="flex min-h-0 flex-1 flex-col"
       >
-        <TabsList className="mx-4 mt-3 w-auto shrink-0">
-          <TabsTrigger
-            value="ai-architect"
-            className="text-copy-muted data-active:bg-accent-dim data-active:text-brand dark:data-active:border-transparent dark:data-active:bg-accent-dim dark:data-active:text-brand"
-          >
+        <TabsList className="mx-4 mt-3 w-[calc(100%-2rem)] shrink-0">
+          <TabsTrigger value="ai-architect" className={TAB_TRIGGER_CLASS}>
             AI Architect
           </TabsTrigger>
-          <TabsTrigger
-            value="specs"
-            className="text-copy-muted data-active:bg-accent-dim data-active:text-brand dark:data-active:border-transparent dark:data-active:bg-accent-dim dark:data-active:text-brand"
-          >
+          <TabsTrigger value="chat" className={TAB_TRIGGER_CLASS}>
+            Chat
+          </TabsTrigger>
+          <TabsTrigger value="specs" className={TAB_TRIGGER_CLASS}>
             Specs
           </TabsTrigger>
         </TabsList>
@@ -158,6 +169,19 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
             triggerError={generation.error}
             onClearTriggerError={generation.clearError}
             onStartDesign={generation.startDesign}
+          />
+        </TabsContent>
+
+        <TabsContent
+          value="chat"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <ChatTab
+            chat={chat}
+            isBusy={isChatBusy}
+            triggerError={chatReply.error}
+            onClearTriggerError={chatReply.clearError}
+            onAsk={chatReply.startChat}
           />
         </TabsContent>
 
@@ -387,6 +411,136 @@ function ChatBubble({
         >
           {message.content}
         </p>
+      </div>
+    </div>
+  );
+}
+
+function ChatTab({
+  chat,
+  isBusy,
+  triggerError,
+  onClearTriggerError,
+  onAsk,
+}: {
+  chat: AiChatFeed;
+  isBusy: boolean;
+  triggerError: string | null;
+  onClearTriggerError: () => void;
+  onAsk: (
+    prompt: string,
+    history: { role: AiChatEvent["role"]; content: string }[],
+  ) => Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState("");
+  const [sendError, setSendError] = useState<string | null>(null);
+  const { messages, sendMessage, currentUserId } = chat;
+  const displayError = sendError ?? triggerError;
+
+  const submitDraft = async () => {
+    const trimmed = draft.trim();
+    if (trimmed.length === 0 || isBusy) {
+      return;
+    }
+
+    const history = messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
+    const sent = sendMessage(trimmed);
+
+    if (!sent) {
+      setSendError(SEND_ERROR_TEXT);
+      return;
+    }
+
+    setDraft("");
+    setSendError(null);
+    onClearTriggerError();
+    await onAsk(trimmed, history);
+  };
+
+  const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    void submitDraft();
+  };
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ScrollArea className="min-h-0 flex-1">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center px-4 py-8 text-center">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-elevated text-ai-text">
+              <Bot className="size-5" aria-hidden />
+            </div>
+            <p className="mt-3 text-sm text-copy-muted">
+              Ask Ghost AI about the design on the canvas. It will explain
+              components and flows without changing the graph.
+            </p>
+          </div>
+        ) : (
+          <div
+            data-ai-chat-feed={AI_CHAT_FEED}
+            className="flex flex-col gap-3 px-4 py-3"
+          >
+            {messages.map((message) => (
+              <ChatBubble
+                key={message.id}
+                message={message}
+                currentUserId={currentUserId}
+              />
+            ))}
+          </div>
+        )}
+      </ScrollArea>
+
+      <div className="border-t border-surface-border p-4">
+        {isBusy ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mb-3 truncate text-xs text-ai-text"
+          >
+            Thinking…
+          </p>
+        ) : null}
+        <Textarea
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            if (sendError) {
+              setSendError(null);
+            }
+            if (triggerError) {
+              onClearTriggerError();
+            }
+          }}
+          onKeyDown={handleComposerKeyDown}
+          placeholder="Ask about the architecture"
+          className="min-h-[72px] max-h-40 resize-none overflow-y-auto bg-elevated text-copy caret-copy placeholder:text-copy-muted dark:bg-elevated dark:text-copy"
+          aria-label="Chat message"
+          disabled={isBusy}
+        />
+        <Button
+          type="button"
+          className="mt-3 w-full bg-brand text-primary-foreground hover:bg-brand/80"
+          onClick={() => {
+            void submitDraft();
+          }}
+          disabled={isBusy || draft.trim().length === 0}
+        >
+          {isBusy ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
+          {isBusy ? "Working…" : "Send"}
+        </Button>
+        {displayError ? (
+          <p className="mt-2 text-xs text-state-error" role="alert">
+            {displayError}
+          </p>
+        ) : null}
       </div>
     </div>
   );
