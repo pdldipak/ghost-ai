@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Choose the next feature unit after shared AI presence (AI sidebar → design API, or spec generation).
+- Choose the next feature unit after room-scoped Architect chat (wire chat to the design API, or spec generation).
 
 ## Completed
 
@@ -39,6 +39,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Design agent API (`feature-specs/25-design-agent-api.md`): Prisma `TaskRun` with unique `runId` and project cascade; membership-gated `POST /api/ai/design` triggers `generate-architecture` via type-only `tasks.trigger` and stores the run; `POST /api/ai/design/token` mints a run-scoped public token for the TaskRun owner; task remains a no-AI stub. No UI, Liveblocks, or canvas writes.
 - Design agent logic (`feature-specs/26-design-agent-logic.md`): `generate-architecture` uses Gemini to plan canvas operations, applies them through Liveblocks `mutateFlow`, and publishes AI presence (`cursor` / `isThinking`) plus room-event status (start / processing / complete / failure). No API or AI sidebar wiring.
 - AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
+- Sidebar chat feed (`feature-specs/28-sidebar-chat-feed.md`): room-scoped `ai-chat` RoomEvents in the Architect tab, validated payload in `types/tasks.ts`, sender/timestamp bubbles, send error on failure, no assistant placeholder. No design-API wiring, Storage, Feeds/Inbox, Prisma, or Blob.
 
 ## In Progress
 
@@ -46,7 +47,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that shared AI presence is in place.
+- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that room-scoped `ai-chat` is in place.
 
 ## Open Questions
 
@@ -127,7 +128,8 @@ Feature 26:
 - **Presence and status:** The agent uses ephemeral Liveblocks presence as user `ghost-ai` with existing fields only (`cursor`, `isThinking`). Progress is broadcast as `RoomEvent` `{ type: "ai-status", step, message }` for start / processing / complete / failure. Presence is cleared when the task finishes. No new Storage keys, APIs, or AI sidebar wiring.
 Feature 27:
 - **Shared AI activity:** Clients subscribe to the existing `ai-status` room events as `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`step`, optional `text`, fallback `message`) and is validated before display. Generation is active when the latest status is `start`/`processing` or any presence has `isThinking: true`. The AI sidebar shows the latest message, locks only the Architect composer, and live-cursor badges show a spinner while thinking. No Storage keys, Feeds/Inbox, new presence fields, or `/api/ai/design` wiring.
-
+Feature 28:
+- **Shared Architect chat:** Clients subscribe to a separate `ai-chat` RoomEvent channel (`AI_CHAT_FEED`), not `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`type`, `id`, `sender`, `senderId`, `role`, `content`, `timestamp`) and is validated before display. Human sends are `role: "user"` via `useBroadcastEvent`; the sender is Liveblocks `UserMeta.info.name`. Own messages stay right-aligned using `senderId`. No Storage, Feeds/Inbox, Comments, Prisma, Blob, or `/api/ai/design` wiring.
 
 ## Session Notes
 

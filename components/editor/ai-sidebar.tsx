@@ -14,14 +14,17 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useAiChatFeed } from "@/hooks/use-ai-chat";
 import {
   useAiGenerationActive,
   useAiStatusFeed,
 } from "@/hooks/use-ai-status";
 import { cn } from "@/lib/utils";
 import {
+  AI_CHAT_FEED,
   AI_STATUS_FEED,
   getAiStatusDisplayText,
+  type AiChatEvent,
   type AiStatusEvent,
 } from "@/types/tasks";
 
@@ -31,8 +34,8 @@ const STARTER_PROMPTS = [
   "Build a CI/CD pipeline",
 ] as const;
 
-const ASSISTANT_PLACEHOLDER =
-  "This is a demo reply. Architecture generation is not connected yet.";
+const SEND_ERROR_TEXT = "Couldn't send message. Try again.";
+const FALLBACK_SENDER = "Guest";
 
 const DEMO_SPEC = {
   title: "Checkout service architecture",
@@ -40,15 +43,15 @@ const DEMO_SPEC = {
     "A high-level spec covering the storefront, checkout API, payments, and order events.",
 } as const;
 
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
-
 interface AiSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface AiChatFeed {
+  messages: AiChatEvent[];
+  sendMessage: (content: string) => boolean;
+  currentUserId: string | undefined;
 }
 
 export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
@@ -56,6 +59,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
   const isGenerating = useAiGenerationActive(status);
   const statusText = status ? getAiStatusDisplayText(status) : "";
   const statusToneClass = getStatusToneClass(status);
+  const chat = useAiChatFeed();
 
   return (
     <aside
@@ -125,7 +129,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
           value="ai-architect"
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <AiArchitectTab isGenerating={isGenerating} />
+          <AiArchitectTab isGenerating={isGenerating} chat={chat} />
         </TabsContent>
 
         <TabsContent
@@ -151,27 +155,32 @@ function getStatusToneClass(status: AiStatusEvent | null): string {
   return "text-ai-text";
 }
 
-function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
+function AiArchitectTab({
+  isGenerating,
+  chat,
+}: {
+  isGenerating: boolean;
+  chat: AiChatFeed;
+}) {
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const { messages, sendMessage, currentUserId } = chat;
 
-  const sendMessage = (content: string) => {
-    const trimmed = content.trim();
+  const submitDraft = () => {
+    const trimmed = draft.trim();
     if (trimmed.length === 0 || isGenerating) {
       return;
     }
 
-    const timestamp = Date.now();
-    setMessages((current) => [
-      ...current,
-      { id: `user-${timestamp}`, role: "user", content: trimmed },
-      {
-        id: `assistant-${timestamp}`,
-        role: "assistant",
-        content: ASSISTANT_PLACEHOLDER,
-      },
-    ]);
+    const sent = sendMessage(trimmed);
+
+    if (!sent) {
+      setSendError(SEND_ERROR_TEXT);
+      return;
+    }
+
     setDraft("");
+    setSendError(null);
   };
 
   const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -180,7 +189,7 @@ function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
     }
 
     event.preventDefault();
-    sendMessage(draft);
+    submitDraft();
   };
 
   return (
@@ -189,12 +198,22 @@ function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
         {messages.length === 0 ? (
           <ArchitectEmptyState
             isGenerating={isGenerating}
-            onSelectPrompt={setDraft}
+            onSelectPrompt={(prompt) => {
+              setDraft(prompt);
+              setSendError(null);
+            }}
           />
         ) : (
-          <div className="flex flex-col gap-3 px-4 py-3">
+          <div
+            data-ai-chat-feed={AI_CHAT_FEED}
+            className="flex flex-col gap-3 px-4 py-3"
+          >
             {messages.map((message) => (
-              <ChatBubble key={message.id} message={message} />
+              <ChatBubble
+                key={message.id}
+                message={message}
+                currentUserId={currentUserId}
+              />
             ))}
           </div>
         )}
@@ -203,7 +222,12 @@ function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
       <div className="border-t border-surface-border p-4">
         <Textarea
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            if (sendError) {
+              setSendError(null);
+            }
+          }}
           onKeyDown={handleComposerKeyDown}
           placeholder="Describe the system you want to design"
           className="min-h-[72px] max-h-40 resize-none overflow-y-auto"
@@ -213,12 +237,17 @@ function AiArchitectTab({ isGenerating }: { isGenerating: boolean }) {
         <Button
           type="button"
           className="mt-3 w-full bg-brand text-primary-foreground hover:bg-brand/80"
-          onClick={() => sendMessage(draft)}
+          onClick={submitDraft}
           disabled={isGenerating || draft.trim().length === 0}
         >
           {isGenerating ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
           {isGenerating ? "Working…" : "Send"}
         </Button>
+        {sendError ? (
+          <p className="mt-2 text-xs text-state-error" role="alert">
+            {sendError}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -256,21 +285,51 @@ function ArchitectEmptyState({
   );
 }
 
-function ChatBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === "user";
+function formatChatTimestamp(timestamp: number): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
+}
+
+function ChatBubble({
+  message,
+  currentUserId,
+}: {
+  message: AiChatEvent;
+  currentUserId: string | undefined;
+}) {
+  const isOwn =
+    message.role === "user" &&
+    Boolean(currentUserId) &&
+    message.senderId === currentUserId;
+  const sender = message.sender.trim() || FALLBACK_SENDER;
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-      <p
-        className={cn(
-          "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-          isUser
-            ? "bg-accent-dim border-2 border-brand/50 text-copy"
-            : "border border-surface-border bg-elevated text-ai-text",
-        )}
-      >
-        {message.content}
-      </p>
+    <div className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+      <div className="max-w-[85%]">
+        <div
+          className={cn(
+            "mb-1 flex items-baseline gap-1.5 text-[10px] text-copy-muted",
+            isOwn ? "justify-end" : "justify-start",
+          )}
+        >
+          <span className="truncate font-medium">{sender}</span>
+          <time dateTime={new Date(message.timestamp).toISOString()}>
+            {formatChatTimestamp(message.timestamp)}
+          </time>
+        </div>
+        <p
+          className={cn(
+            "rounded-2xl px-3 py-2 text-sm",
+            isOwn
+              ? "bg-accent-dim border-2 border-brand/50 text-copy"
+              : "border border-surface-border bg-elevated text-ai-text",
+          )}
+        >
+          {message.content}
+        </p>
+      </div>
     </div>
   );
 }

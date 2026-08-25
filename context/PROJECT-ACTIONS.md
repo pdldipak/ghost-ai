@@ -92,3 +92,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Hardened design-agent canvas apply so Gemini cannot write non-finite node positions/sizes into Liveblocks, leaving existing canvas, APIs, and sidebar unwired |
 | 2026-08-25 | Tightened `27-ai-presence-state.md` into an implementation prompt against existing `ai-status` room events, `isThinking` presence, and the local AI sidebar |
 | 2026-08-25 | Added shared AI presence status in the sidebar, validated `ai-status` payloads, composer lock while thinking, and live-cursor spinners per `27-ai-presence-state.md` |
+| 2026-08-25 | Tightened `28-sidebar-chat-feed.md` into an implementation prompt against the local Architect demo thread, `ai-status-feed` room events, and existing sidebar composer |
+| 2026-08-25 | Added room-scoped Architect chat on a separate `ai-chat` feed with validated payloads, sender/timestamp bubbles, and send-error state per `28-sidebar-chat-feed.md` |

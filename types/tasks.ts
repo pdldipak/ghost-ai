@@ -1,4 +1,5 @@
 export const AI_STATUS_FEED = "ai-status-feed";
+export const AI_CHAT_FEED = "ai-chat";
 
 export const AI_STATUS_STEPS = [
   "start",
@@ -66,4 +67,68 @@ export function getAiStatusDisplayText(event: AiStatusEvent): string {
 
 export function isAiStatusActive(event: AiStatusEvent | null): boolean {
   return event?.step === "start" || event?.step === "processing";
+}
+
+export const AI_CHAT_ROLES = ["user", "assistant"] as const;
+
+export type AiChatRole = (typeof AI_CHAT_ROLES)[number];
+
+export type AiChatEvent = {
+  type: "ai-chat";
+  id: string;
+  sender: string;
+  senderId: string;
+  role: AiChatRole;
+  content: string;
+  timestamp: number;
+};
+
+function isAiChatRole(value: unknown): value is AiChatRole {
+  return AI_CHAT_ROLES.some((role) => role === value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+export function parseAiChatEvent(value: unknown): AiChatEvent | null {
+  if (value === null || typeof value !== "object") {
+    return null;
+  }
+
+  const event = value as Record<string, unknown>;
+
+  if (event.type !== "ai-chat" || !isAiChatRole(event.role)) {
+    return null;
+  }
+
+  if (!isNonEmptyString(event.id) || !isNonEmptyString(event.sender)) {
+    return null;
+  }
+
+  if (!isNonEmptyString(event.senderId)) {
+    return null;
+  }
+
+  if (!isNonEmptyString(event.content)) {
+    return null;
+  }
+
+  if (typeof event.timestamp !== "number" || !Number.isFinite(event.timestamp)) {
+    return null;
+  }
+
+  return {
+    type: "ai-chat",
+    id: event.id.trim(),
+    sender: event.sender.trim(),
+    senderId: event.senderId.trim(),
+    role: event.role,
+    content: event.content.trim(),
+    timestamp: event.timestamp,
+  };
+}
+
+export function isAiChatEvent(value: unknown): value is AiChatEvent {
+  return parseAiChatEvent(value) !== null;
 }
