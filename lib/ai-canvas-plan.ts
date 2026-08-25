@@ -432,7 +432,8 @@ export function parseAiCanvasPlan(
     return "Gemini returned an invalid plan";
   }
 
-  const replaceGraph = asBoolean(raw.replaceGraph) ?? false;
+  const replaceGraph =
+    snapshot.nodes.length === 0 ? true : (asBoolean(raw.replaceGraph) ?? false);
   const operationsValue = raw.operations;
 
   if (!Array.isArray(operationsValue)) {
@@ -650,10 +651,10 @@ function isPositiveFiniteSize(width: number, height: number): boolean {
   return Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0;
 }
 
-async function reportCursor(
-  onCursor: (cursor: { x: number; y: number }) => Promise<void>,
+function reportCursor(
+  onCursor: (cursor: { x: number; y: number }) => void,
   node: CanvasNode | undefined,
-): Promise<void> {
+): void {
   if (!node || !isFinitePosition(node.position)) {
     return;
   }
@@ -663,7 +664,7 @@ async function reportCursor(
     return;
   }
 
-  await onCursor(cursor);
+  onCursor(cursor);
 }
 
 export function serializeCanvasForPrompt(snapshot: CanvasSnapshot): string {
@@ -719,11 +720,11 @@ function toCanvasEdge(operation: AddEdgeOperation): CanvasEdge {
   };
 }
 
-export async function applyAiCanvasPlan(
+export function applyAiCanvasPlan(
   flow: MutableFlow<CanvasNode, CanvasEdge>,
   plan: AiCanvasPlan,
-  onCursor: (cursor: { x: number; y: number }) => Promise<void>,
-): Promise<void> {
+  onCursor: (cursor: { x: number; y: number }) => void,
+): void {
   if (plan.replaceGraph) {
     if (flow.edges.length > 0) {
       flow.removeEdges(flow.edges.map((edge) => edge.id));
@@ -745,7 +746,7 @@ export async function applyAiCanvasPlan(
           break;
         }
         flow.addNode(node);
-        await reportCursor(onCursor, node);
+        reportCursor(onCursor, node);
         break;
       }
       case "moveNode": {
@@ -755,7 +756,7 @@ export async function applyAiCanvasPlan(
         flow.updateNode(operation.id, {
           position: { x: operation.x, y: operation.y },
         });
-        await reportCursor(onCursor, flow.getNode(operation.id));
+        reportCursor(onCursor, flow.getNode(operation.id));
         break;
       }
       case "resizeNode": {
@@ -766,7 +767,7 @@ export async function applyAiCanvasPlan(
           width: operation.width,
           height: operation.height,
         });
-        await reportCursor(onCursor, flow.getNode(operation.id));
+        reportCursor(onCursor, flow.getNode(operation.id));
         break;
       }
       case "updateNodeData": {
@@ -790,7 +791,7 @@ export async function applyAiCanvasPlan(
           color: operation.color ?? current.data.color,
           shape: nextShape,
         });
-        await reportCursor(onCursor, {
+        reportCursor(onCursor, {
           ...current,
           width: nextSize.width,
           height: nextSize.height,
@@ -802,7 +803,7 @@ export async function applyAiCanvasPlan(
         break;
       }
       case "deleteNode": {
-        await reportCursor(onCursor, flow.getNode(operation.id));
+        reportCursor(onCursor, flow.getNode(operation.id));
 
         const connected = flow.edges
           .filter(
@@ -820,12 +821,12 @@ export async function applyAiCanvasPlan(
       }
       case "addEdge": {
         flow.addEdge(toCanvasEdge(operation));
-        await reportCursor(onCursor, flow.getNode(operation.source));
+        reportCursor(onCursor, flow.getNode(operation.source));
         break;
       }
       case "deleteEdge": {
         const edge = flow.getEdge(operation.id);
-        await reportCursor(
+        reportCursor(
           onCursor,
           edge ? flow.getNode(edge.source) : undefined,
         );
@@ -844,7 +845,7 @@ export const AI_CANVAS_PLAN_SCHEMA = {
     replaceGraph: {
       type: "boolean" as const,
       description:
-        "True only when the user clearly asks to replace the whole design or generate a new architecture from scratch.",
+        "True when the canvas is empty or the user asks to design, generate, replace, or start a new architecture. False only for a small edit to an existing diagram.",
     },
     summary: {
       type: "string" as const,
@@ -853,6 +854,8 @@ export const AI_CANVAS_PLAN_SCHEMA = {
     },
     operations: {
       type: "array" as const,
+      description:
+        "Complete canvas mutations. Every component in the design request must have its own addNode, and every connection must have an addEdge. A typical backend architecture has 6 to 14 nodes plus edges. Do not put components only in the summary.",
       items: {
         type: "object" as const,
         required: ["type"],

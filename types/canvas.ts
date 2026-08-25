@@ -45,6 +45,7 @@ export const NODE_MIN_WIDTH = 48;
 export const NODE_MIN_HEIGHT = 32;
 
 export const NODE_LABEL_PLACEHOLDER = "Label";
+export const EDGE_LABEL_PLACEHOLDER = "Describe flow";
 
 export const SHAPE_DRAG_MIME = "application/ghost-shape";
 

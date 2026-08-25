@@ -99,3 +99,6 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Professionalized Gemini design prompts and Architect starter chips so the agent writes user-facing architecture summaries |
 | 2026-08-25 | Switched Architect starter chips and assistant bubbles to `text-copy` on `bg-elevated` so labels stay readable across themes |
 | 2026-08-25 | Set Architect composer text, caret, and placeholder to copy tokens so typed chat text contrasts with the dark input |
+| 2026-08-25 | Applied design-agent canvas mutations in one Liveblocks write and required a complete node/edge plan so prompts no longer leave a single gateway on the canvas |
+| 2026-08-25 | Switched design generation to an architecture graph (components and connections) compiled into canvas nodes so prompts produce the full system, not a single client |
+| 2026-08-25 | Opened an inline “Describe flow” editor when connecting nodes so users can label why an edge exists (for example Persistent order state) |

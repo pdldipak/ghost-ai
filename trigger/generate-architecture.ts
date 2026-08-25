@@ -3,11 +3,16 @@ import { mutateFlow } from "@liveblocks/react-flow/node";
 import { AbortTaskRunError, task } from "@trigger.dev/sdk";
 
 import {
+  AI_ARCHITECTURE_GRAPH_SCHEMA,
+  architectureGraphToPlan,
+  extractJsonObject,
+  parseArchitectureGraph,
+  type ArchitectureGraph,
+} from "@/lib/ai-architecture-graph";
+import {
   applyAiCanvasPlan,
-  AI_CANVAS_PLAN_SCHEMA,
-  parseAiCanvasPlan,
   serializeCanvasForPrompt,
-  validateAiCanvasPlan,
+  type AiCanvasPlan,
   type CanvasSnapshot,
 } from "@/lib/ai-canvas-plan";
 import {
@@ -20,9 +25,7 @@ import { generateText, jsonSchema, Output } from "@/lib/ai-sdk";
 import { isFinitePosition } from "@/lib/canvas-nodes";
 import { liveblocks } from "@/lib/liveblocks";
 import {
-  DEFAULT_NODE_COLOR,
   NODE_COLORS,
-  NODE_HANDLE_IDS,
   NODE_SHAPES,
   type CanvasEdge,
   type CanvasNode,
@@ -36,6 +39,7 @@ interface GenerateArchitecturePayload {
 }
 
 const DEFAULT_CURSOR = { x: 80, y: 80 };
+const MIN_NODES_FOR_FULL_DESIGN = 5;
 
 function readPayloadString(...values: unknown[]): string {
   for (const value of values) {
@@ -67,39 +71,183 @@ function buildSystemPrompt(): string {
     (color) => `${color.label} (${color.fill})`,
   ).join(", ");
 
-  return `You are Ghost Assistant, a senior software architect for a collaborative system-design canvas.
+  return `You are Ghost Assistant, a senior software architect.
 
-Translate the design request into a precise canvas operation plan. Collaborators may already be editing this diagram; treat the current graph as the source of truth.
+Return an architecture graph for the user's request. Code will place it on a collaborative canvas. Do not return canvas operations.
 
-Objectives:
-- Model the request as a production architecture: services, APIs, data stores, queues, gateways, and the flows between them.
-- Prefer incremental edits. Set replaceGraph to true only when the canvas is empty, or when the user explicitly asks to replace, start over, or generate a new design.
-- Keep the diagram readable: short component labels, consistent spacing of about 80px, and no overlapping nodes.
+The graph must match THIS request. Never use a generic Web and Mobile client template. If the user asks for e-commerce, include the gateway, services, stores, cache, and queue they named. If they ask for something else, include those components instead.
 
-Canvas contract:
-- Nodes are type canvasNode with data.label, data.color, and data.shape.
-- Edges are type canvasEdge with data.label and four-side handles.
-- Allowed shapes: ${NODE_SHAPES.join(", ")}.
-- Allowed colors (use the fill hex): ${colors}. Default color: ${DEFAULT_NODE_COLOR}.
-- Connection handles: ${NODE_HANDLE_IDS.join(", ")}. Prefer sourceHandle "right" and targetHandle "left".
-- Supported operations: addNode, moveNode, resizeNode, updateNodeData, deleteNode, addEdge, deleteEdge.
-- Only move, resize, update, or delete nodes and edges that already exist, or that this plan adds earlier.
+Include every necessary component as its own node:
+- clients and channels that users actually need
+- API gateways and BFF or edge layers
+- application services and APIs
+- databases, caches, search, and object storage
+- message queues, streams, and workers
+- external integrations and identity providers
+- infrastructure that the request implies (CDN, load balancer, observability) when relevant
 
-Summary:
-- Write summary as one or two professional sentences for the user.
-- Describe what was added or changed. Do not mention internal operation names, JSON, or implementation details.`;
+Kind must be one of: client, gateway, service, api, database, cache, queue, integration, infra.
+Preferred shapes: client=pill, gateway=hexagon, service/api=rectangle, database/cache=cylinder, queue=diamond.
+Allowed shapes: ${NODE_SHAPES.join(", ")}.
+Allowed colors (fill hex or label): ${colors}.
+
+Connect nodes with edges (HTTPS, gRPC, events, reads, writes). A summary is not a substitute for nodes.
+
+When the canvas is empty, or the user asks to design, generate, replace, or start over, set replaceGraph to true and return the full graph.
+For a small edit, set replaceGraph to false and return only nodes and edges to add.
+
+Summary: one or two professional sentences. Do not mention JSON or operation names.`;
 }
 
-function buildUserPrompt(snapshot: CanvasSnapshot, prompt: string): string {
-  return [
+function buildUserPrompt(
+  snapshot: CanvasSnapshot,
+  prompt: string,
+  extraInstruction?: string,
+): string {
+  const lines = [
     "CURRENT CANVAS",
     serializeCanvasForPrompt(snapshot),
     "",
     "DESIGN REQUEST",
     prompt,
     "",
-    "Return a canvas operation plan that fulfills the design request against the current canvas.",
-  ].join("\n");
+    snapshot.nodes.length === 0
+      ? "The canvas is empty. Set replaceGraph to true. Return the complete architecture graph for this request, with a node for every component and edges for every flow."
+      : "Return an architecture graph that fulfills the design request against the current canvas.",
+  ];
+
+  if (extraInstruction) {
+    lines.push("", extraInstruction);
+  }
+
+  return lines.join("\n");
+}
+
+function isFullDesignRequest(prompt: string): boolean {
+  return /\b(design|architect|generate|replace|start over|from scratch)\b/i.test(
+    prompt,
+  );
+}
+
+function graphToPlan(
+  graph: ArchitectureGraph,
+  snapshot: CanvasSnapshot,
+): AiCanvasPlan | string {
+  return architectureGraphToPlan(graph, snapshot);
+}
+
+async function requestStructuredGraph(
+  apiKey: string,
+  snapshot: CanvasSnapshot,
+  prompt: string,
+  extraInstruction?: string,
+): Promise<ArchitectureGraph | string> {
+  const google = createGoogleGenerativeAI({ apiKey });
+  const result = await generateText({
+    model: google("gemini-3.6-flash"),
+    output: Output.object({
+      name: "architectureGraph",
+      description:
+        "Complete system architecture graph. Every component is a node; every communication path is an edge.",
+      schema: jsonSchema(AI_ARCHITECTURE_GRAPH_SCHEMA),
+    }),
+    system: buildSystemPrompt(),
+    prompt: buildUserPrompt(snapshot, prompt, extraInstruction),
+  });
+
+  return parseArchitectureGraph(result.output, snapshot);
+}
+
+async function requestUnstructuredGraph(
+  apiKey: string,
+  snapshot: CanvasSnapshot,
+  prompt: string,
+): Promise<ArchitectureGraph | string> {
+  const google = createGoogleGenerativeAI({ apiKey });
+  const result = await generateText({
+    model: google("gemini-3.6-flash"),
+    system: buildSystemPrompt(),
+    prompt: [
+      buildUserPrompt(
+        snapshot,
+        prompt,
+        "Reply with a single JSON object only. Do not wrap it in markdown. Include every component from the request as a node.",
+      ),
+    ].join("\n"),
+  });
+
+  return parseArchitectureGraph(extractJsonObject(result.text), snapshot);
+}
+
+function needsFullGraph(
+  prompt: string,
+  snapshot: CanvasSnapshot,
+  graph: ArchitectureGraph,
+): boolean {
+  return (
+    snapshot.nodes.length === 0 ||
+    graph.replaceGraph ||
+    isFullDesignRequest(prompt)
+  );
+}
+
+async function requestCanvasPlan(
+  apiKey: string,
+  snapshot: CanvasSnapshot,
+  prompt: string,
+): Promise<AiCanvasPlan | string> {
+  let graph = await requestStructuredGraph(apiKey, snapshot, prompt);
+
+  if (typeof graph !== "string") {
+    if (
+      needsFullGraph(prompt, snapshot, graph) &&
+      graph.nodes.length < MIN_NODES_FOR_FULL_DESIGN
+    ) {
+      const retry = await requestStructuredGraph(
+        apiKey,
+        snapshot,
+        prompt,
+        `The previous graph only had ${graph.nodes.length} node(s). Return the FULL architecture for this request: clients only if needed, plus gateway, each service, each datastore, cache, queue, and integrations named or implied. Do not stop at a Web and Mobile client.`,
+      );
+
+      if (typeof retry !== "string" && retry.nodes.length > graph.nodes.length) {
+        graph = retry;
+      }
+    }
+  }
+
+  if (
+    typeof graph !== "string" &&
+    needsFullGraph(prompt, snapshot, graph) &&
+    graph.nodes.length < MIN_NODES_FOR_FULL_DESIGN
+  ) {
+    const unconstrained = await requestUnstructuredGraph(
+      apiKey,
+      snapshot,
+      prompt,
+    );
+
+    if (
+      typeof unconstrained !== "string" &&
+      unconstrained.nodes.length > graph.nodes.length
+    ) {
+      graph = unconstrained;
+    }
+  }
+
+  if (typeof graph === "string") {
+    const unconstrained = await requestUnstructuredGraph(
+      apiKey,
+      snapshot,
+      prompt,
+    );
+    if (typeof unconstrained === "string") {
+      return graph;
+    }
+    graph = unconstrained;
+  }
+
+  return graphToPlan(graph, snapshot);
 }
 
 async function readCanvasSnapshot(roomId: string): Promise<CanvasSnapshot> {
@@ -175,43 +323,24 @@ export const generateArchitecture = task({
       const snapshot = await readCanvasSnapshot(roomId);
       await publishAiStatus(roomId, "processing");
 
-      const google = createGoogleGenerativeAI({ apiKey });
-      const result = await generateText({
-        model: google("gemini-3.6-flash"),
-        output: Output.object({
-          name: "canvasPlan",
-          description: "Canvas mutation plan for the collaborative architecture diagram.",
-          schema: jsonSchema(AI_CANVAS_PLAN_SCHEMA),
-        }),
-        system: buildSystemPrompt(),
-        prompt: buildUserPrompt(snapshot, prompt),
-      });
-
-      const plan = parseAiCanvasPlan(result.output, snapshot);
+      const plan = await requestCanvasPlan(apiKey, snapshot, prompt);
 
       if (typeof plan === "string") {
         await fail(plan);
         throw new AbortTaskRunError(plan);
       }
 
-      const validationError = validateAiCanvasPlan(plan, snapshot);
-
-      if (validationError) {
-        await fail(validationError);
-        throw new AbortTaskRunError(validationError);
-      }
-
       applied = true;
 
       await mutateFlow<CanvasNode, CanvasEdge>(
         { client: liveblocks, roomId },
-        async (flow) => {
-          await applyAiCanvasPlan(flow, plan, async (cursor) => {
+        (flow) => {
+          applyAiCanvasPlan(flow, plan, (cursor) => {
             if (!isFinitePosition(cursor)) {
               return;
             }
 
-            await setAiPresence({
+            void setAiPresence({
               roomId,
               cursor,
               isThinking: true,
@@ -231,6 +360,8 @@ export const generateArchitecture = task({
         prompt,
         replaceGraph: plan.replaceGraph,
         operationCount: plan.operations.length,
+        nodeCount: plan.operations.filter((operation) => operation.type === "addNode")
+          .length,
         summary: plan.summary,
       };
     } catch (error) {
