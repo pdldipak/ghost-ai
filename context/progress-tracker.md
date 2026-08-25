@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Choose the next feature unit after design-agent frontend wiring (spec generation is the remaining AI path).
+- Wire the Specs tab to the spec generation backend (`POST /api/ai/spec` exists; the tab is still a visual placeholder).
 
 ## Completed
 
@@ -43,6 +43,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Design agent frontend (`feature-specs/29-design-agent-frontend.md`): Architect submit posts to `/api/ai/design`, tracks the Trigger.dev run with `useRealtimeRun`, shows a compact status strip while active, and pushes a final Ghost AI chat message on completion. Canvas updates still come from Liveblocks. Gemini and starter prompts are professional and user-facing.
 - AI sidebar Chat tab (`feature-specs/30-ai-sidebar-chat-tab.md`): tab bar is AI Architect, Chat, Specs; Chat shows the shared `ai-chat` thread and sends room messages without starting design generation.
 - Chat replies (`feature-specs/31-chat-replies.md`): Chat submit posts to `/api/ai/chat`, runs `explain-architecture` against the current canvas, and pushes a Ghost AI `ai-chat` reply. The graph is not mutated.
+- Spec generation flow (`feature-specs/31-spec-generation-flow.md`): membership-gated `POST /api/ai/spec` triggers `generate-spec`, stores a `TaskRun`, and returns `{ runId, publicToken }`; `POST /api/ai/spec/token` mints a run-scoped token for the TaskRun owner; the task reads the Liveblocks canvas and returns `{ title, spec }` Markdown. No Specs-tab wiring, Prisma Spec model, or Blob persistence.
 
 ## In Progress
 
@@ -50,7 +51,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Spec generation from the current canvas graph (Specs tab is still a visual placeholder).
+- Specs tab frontend: trigger spec generation, show the Markdown result, and persist/download (Generate Spec is still a no-op).
 
 ## Open Questions
 
@@ -141,6 +142,8 @@ Feature 30:
 - **Chat tab:** AI Workspace tabs are `AI Architect`, `Chat`, and `Specs`. Chat reads and writes the existing `ai-chat` feed. Chat send is room chat only — it does not call `/api/ai/design`. Architect composer lock while generating is unchanged; Chat stays usable.
 Feature 31:
 - **Chat replies:** `POST /api/ai/chat` triggers `explain-architecture` with `{ projectId, prompt, history? }`, stores a `TaskRun`, and returns `{ runId, publicToken }`. The task reads the Liveblocks canvas, asks Gemini for a text answer, and returns `{ summary }`. It does not mutate nodes/edges or publish `ai-status`. The Chat tab tracks the run with `useRealtimeRun` and broadcasts the reply on `ai-chat`.
+Feature 32:
+- **Spec generation backend:** `POST /api/ai/spec` accepts `{ projectId }` (`roomId` alias) and optional `history`, requires Clerk + project membership, triggers `generate-spec` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId, publicToken }`. `POST /api/ai/spec/token` mints a run-scoped public token only for the TaskRun owner who still has project access. The worker reads the Liveblocks graph (`readCanvasSnapshot`); it does not accept client nodes/edges, mutate the canvas, or publish `ai-status`. Output is `{ title, spec }` Markdown. Specs are not persisted to Prisma or Blob in this unit.
 
 ## Session Notes
 

@@ -104,3 +104,5 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Opened an inline “Describe flow” editor when connecting nodes so users can label why an edge exists (for example Persistent order state) |
 | 2026-08-25 | Added a Chat tab between AI Architect and Specs so collaborators can discuss the design without starting canvas generation |
 | 2026-08-25 | Wired Chat questions to Gemini via `explain-architecture` so Ghost AI replies about the current canvas without changing the graph |
+| 2026-08-25 | Tightened `31-spec-generation-flow.md` into an implementation prompt against the existing design/chat trigger pattern, Liveblocks canvas snapshot, and Specs-tab placeholder |
+| 2026-08-25 | Added membership-gated spec trigger/token APIs and a Gemini `generate-spec` task that turns the Liveblocks canvas into Markdown without changing the graph |
