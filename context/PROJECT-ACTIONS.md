@@ -78,3 +78,15 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-24 | Finished Trigger.dev setup: Node 22 worker, `trigger/` tasks, `hello-world` smoke test, pinned CLI, and `trigger:dev` / `trigger:deploy` scripts per `24-trigger-setup.md` |
 | 2026-08-24 | Removed the Trigger.dev `hello-world` smoke-test task so `trigger/` only holds Ghost Assistant product jobs |
 | 2026-08-24 | Added `trigger/generate-architecture.ts` so `trigger:dev` finds a product task instead of failing with no trigger files |
+| 2026-08-25 | Added `trigger/generate-spec.ts` so the worker registers both Ghost Assistant jobs (architecture and spec) |
+| 2026-08-25 | Ignored `.trigger/**` in ESLint so local Trigger.dev build cache does not fail `npm run lint` |
+| 2026-08-25 | Tightened `25-design-agent-api.md` into an implementation prompt against the existing `generate-architecture` stub, Prisma multi-file schema, and project access helpers |
+| 2026-08-25 | Added TaskRun tracking and membership-gated design trigger/token APIs so the app can start `generate-architecture` runs and issue run-scoped tokens per `25-design-agent-api.md` |
+| 2026-08-25 | Tightened `26-design-agent-logic.md` into an implementation prompt against the existing `generate-architecture` stub, Liveblocks flow/presence, and `canvasNode` / `canvasEdge` schema |
+| 2026-08-25 | Implemented Gemini design-agent logic in `generate-architecture` so prompts mutate the Liveblocks canvas with AI presence and room status per `26-design-agent-logic.md` |
+| 2026-08-25 | Cleared a root-owned `.next` cache that blocked Turbopack writes (`Permission denied` on `_document.js` / `_error.js`) so local `next dev` can run again |
+| 2026-08-25 | Guarded `generate-architecture` payload parsing so a missing `projectId` or `prompt` fails with AbortTaskRunError instead of crashing on `.trim()` |
+| 2026-08-25 | Gave the React Flow pane a definite size and deferred fitView until width/height are ready so the dotted background no longer gets a NaN `cx` |
+| 2026-08-25 | Re-exported `ai` SDK symbols from `lib/ai-sdk.ts` so TypeScript loads the package's `.d.ts` instead of treating `dist/index.js` as untyped |
+| 2026-08-25 | Stopped first-drop fitView from writing a NaN zoom into React Flow so creating a shape no longer logs NaN `cx`/`cy`/`r` on the dotted background |
+| 2026-08-25 | Hardened design-agent canvas apply so Gemini cannot write non-finite node positions/sizes into Liveblocks, leaving existing canvas, APIs, and sidebar unwired |

@@ -46,6 +46,13 @@ export function parseShapeDragPayload(raw: string): ShapeDragPayload | null {
   }
 }
 
+export function isFinitePosition(position: {
+  x: number;
+  y: number;
+}): boolean {
+  return Number.isFinite(position.x) && Number.isFinite(position.y);
+}
+
 export function createDroppedCanvasNode(
   payload: ShapeDragPayload,
   position: { x: number; y: number },
@@ -56,6 +63,7 @@ export function createDroppedCanvasNode(
     position,
     width: payload.width,
     height: payload.height,
+    measured: { width: payload.width, height: payload.height },
     data: {
       label: "",
       color: DEFAULT_NODE_COLOR,

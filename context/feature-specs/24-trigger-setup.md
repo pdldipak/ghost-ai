@@ -21,7 +21,12 @@ Remove `src/trigger`. This app does not use a `src/` tree.
 
 Keep `trigger/` in the repo for product jobs. Do not add a hello-world or other sample task.
 
-`trigger:dev` requires at least one `*.ts` task file under `./trigger`. Add `trigger/generate-architecture.ts` with id `generate-architecture` and payload `{ projectId, prompt }` so the worker can start. Do not call models, Liveblocks, Prisma, or Blob yet — that belongs in a later AI generation feature.
+`trigger:dev` requires product `*.ts` task files under `./trigger`. Add:
+
+- `trigger/generate-architecture.ts` — id `generate-architecture`, payload `{ projectId, prompt }`
+- `trigger/generate-spec.ts` — id `generate-spec`, payload `{ projectId }`
+
+Do not call models, Liveblocks, Prisma, or Blob yet — that belongs in later AI generation features.
 
 Architecture generation and spec generation behavior are later feature units.
 

@@ -18,7 +18,11 @@ declare global {
       };
     };
 
-    RoomEvent: Record<string, never>;
+    RoomEvent: {
+      type: "ai-status";
+      step: "start" | "processing" | "complete" | "failure";
+      message: string;
+    };
 
     ThreadMetadata: Record<string, never>;
 

@@ -73,6 +73,15 @@ pkill -f "next dev"
 npm run dev
 ```
 
+If Turbopack panics with `Permission denied` writing under `.next` (often `_document.js` / `_error.js`), the cache was created by Docker or a root process. Stop `next dev`, delete it, and start again:
+
+```bash
+rm -rf .next .next.stale-*
+npm run dev
+```
+
+If `rm` fails with `Permission denied`, run the same commands with `sudo`.
+
 ## Docker
 
 ### Production
@@ -128,7 +137,7 @@ npm run trigger:dev
 npm run trigger:deploy
 ```
 
-`trigger:dev` watches `trigger/` and registers tasks with the Trigger.dev dashboard. The first product task is `generate-architecture`. Set `TRIGGER_SECRET_KEY` in `.env.local` before triggering runs from the Next.js app. Use Node 22 (`nvm use`) so the local CLI matches `runtime: "node-22"`.
+`trigger:dev` watches `trigger/` and registers tasks with the Trigger.dev dashboard. Product tasks are `generate-architecture` and `generate-spec`. Set `TRIGGER_SECRET_KEY` in `.env.local` before triggering runs from the Next.js app. Use Node 22 (`nvm use`) so the local CLI matches `runtime: "node-22"`.
 
 ## CI/CD
 

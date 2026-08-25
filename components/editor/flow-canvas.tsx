@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
   Background,
@@ -10,11 +10,14 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useStore,
+  useStoreApi,
   type Connection,
   type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { AiStatusFeed } from "@/components/editor/ai-status-feed";
 import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasEdgeView } from "@/components/editor/canvas-edge";
 import { CanvasNodeView } from "@/components/editor/canvas-node";
@@ -48,6 +51,39 @@ const edgeTypes = {
   canvasEdge: CanvasEdgeView,
 };
 
+const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 1 } as const;
+
+const FIT_VIEW_OPTIONS = {
+  duration: CANVAS_ZOOM_DURATION_MS,
+  padding: 0.2,
+  includeHiddenNodes: true,
+} as const;
+
+const FIT_VIEW_SIZE_RETRIES = 32;
+
+function selectFiniteViewport(state: { transform: [number, number, number] }): boolean {
+  const [x, y, zoom] = state.transform;
+  return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(zoom) && zoom > 0;
+}
+
+function fitViewWhenPaneReady(
+  fit: () => unknown,
+  isPaneReady: () => boolean,
+): void {
+  const attempt = (remaining: number) => {
+    if (isPaneReady()) {
+      void fit();
+      return;
+    }
+
+    if (remaining > 0) {
+      requestAnimationFrame(() => attempt(remaining - 1));
+    }
+  };
+
+  requestAnimationFrame(() => attempt(FIT_VIEW_SIZE_RETRIES));
+}
+
 interface FlowCanvasInnerProps {
   projectId: string;
   templatesOpen: boolean;
@@ -64,47 +100,70 @@ function FlowCanvasInner({
   saveNowRef,
 }: FlowCanvasInnerProps) {
   const reactFlow = useReactFlow();
+  const store = useStoreApi();
+  const isViewportFinite = useStore(selectFiniteViewport);
   const { nodes, edges, onNodesChange, onEdgesChange, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
       nodes: { initial: [] },
       edges: { initial: [] },
     });
+  const startedEmptyRef = useRef(nodes.length === 0);
+
+  const isPaneReady = useCallback(() => {
+    const { width, height } = store.getState();
+    return (
+      Number.isFinite(width) &&
+      Number.isFinite(height) &&
+      width > 0 &&
+      height > 0
+    );
+  }, [store]);
 
   const handleFitSavedView = useCallback(
     (savedNodes: CanvasNode[]) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          void reactFlow.fitView({
+      fitViewWhenPaneReady(
+        () =>
+          reactFlow.fitView({
             nodes: savedNodes,
-            duration: CANVAS_ZOOM_DURATION_MS,
-            padding: 0.2,
-          });
-        });
-      });
+            ...FIT_VIEW_OPTIONS,
+          }),
+        isPaneReady,
+      );
     },
-    [reactFlow],
+    [isPaneReady, reactFlow],
   );
 
   const handleInit = useCallback(
     (instance: ReactFlowInstance<CanvasNode, CanvasEdge>) => {
+      if (startedEmptyRef.current) {
+        return;
+      }
+
       const currentNodes = instance.getNodes();
       if (currentNodes.length === 0) {
         return;
       }
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          void instance.fitView({
+      fitViewWhenPaneReady(
+        () =>
+          instance.fitView({
             nodes: currentNodes,
-            duration: CANVAS_ZOOM_DURATION_MS,
-            padding: 0.2,
-          });
-        });
-      });
+            ...FIT_VIEW_OPTIONS,
+          }),
+        isPaneReady,
+      );
     },
-    [],
+    [isPaneReady],
   );
+
+  useEffect(() => {
+    if (isViewportFinite) {
+      return;
+    }
+
+    void reactFlow.setViewport(DEFAULT_VIEWPORT, { duration: 0 });
+  }, [isViewportFinite, reactFlow]);
 
   const { status, saveNow } = useCanvasAutosave({
     projectId,
@@ -158,18 +217,18 @@ function FlowCanvasInner({
 
       onTemplatesOpenChange(false);
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          void reactFlow.fitView({
+      fitViewWhenPaneReady(
+        () =>
+          reactFlow.fitView({
             nodes: next.nodes,
-            duration: CANVAS_ZOOM_DURATION_MS,
-            padding: 0.2,
-          });
-        });
-      });
+            ...FIT_VIEW_OPTIONS,
+          }),
+        isPaneReady,
+      );
     },
     [
       edges,
+      isPaneReady,
       nodes,
       onEdgesChange,
       onNodesChange,
@@ -180,7 +239,7 @@ function FlowCanvasInner({
 
   return (
     <div
-      className="relative min-h-0 flex-1 bg-base"
+      className="absolute inset-0 bg-base"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
@@ -200,17 +259,21 @@ function FlowCanvasInner({
         connectionLineType={ConnectionLineType.SmoothStep}
         connectionLineStyle={CANVAS_EDGE_STYLE}
         connectionMode={ConnectionMode.Loose}
+        defaultViewport={DEFAULT_VIEWPORT}
         proOptions={{ hideAttribution: true }}
         className="bg-base"
       >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-          color="var(--border-subtle)"
-        />
+        {isViewportFinite ? (
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={20}
+            size={1}
+            color="var(--border-subtle)"
+          />
+        ) : null}
         <LiveCursors />
       </ReactFlow>
+      <AiStatusFeed />
       <PresenceAvatars />
       <CanvasControlBar />
       <ShapePanel />
