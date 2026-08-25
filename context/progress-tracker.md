@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Wire the Specs tab to the spec generation backend (`POST /api/ai/spec` exists; the tab is still a visual placeholder).
+- Specs tab can generate a spec and download it as Markdown or PDF, with project-scoped history when Save history is on.
 
 ## Completed
 
@@ -44,6 +44,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - AI sidebar Chat tab (`feature-specs/30-ai-sidebar-chat-tab.md`): tab bar is AI Architect, Chat, Specs; Chat shows the shared `ai-chat` thread and sends room messages without starting design generation.
 - Chat replies (`feature-specs/31-chat-replies.md`): Chat submit posts to `/api/ai/chat`, runs `explain-architecture` against the current canvas, and pushes a Ghost AI `ai-chat` reply. The graph is not mutated.
 - Spec generation flow (`feature-specs/31-spec-generation-flow.md`): membership-gated `POST /api/ai/spec` triggers `generate-spec`, stores a `TaskRun`, and returns `{ runId, publicToken }`; `POST /api/ai/spec/token` mints a run-scoped token for the TaskRun owner; the task reads the Liveblocks canvas and returns `{ title, spec }` Markdown. No Specs-tab wiring, Prisma Spec model, or Blob persistence.
+- Spec persistence and download (`feature-specs/33-spec-persistence-download.md`): Prisma `ProjectSpec` metadata with `filePath`; `generate-spec` uploads Markdown to Vercel Blob at `specs/{projectId}/{specId}.md` and returns `{ title, spec, specId }`; membership-gated `GET /api/projects/[projectId]/specs/[specId]/download` streams a Markdown attachment. No Specs-tab wiring.
+- Specs tab frontend: Generate Spec posts to `/api/ai/spec`, tracks the run with `useRealtimeRun`, replaces the demo card with the generated title/snippet, and offers Markdown or PDF download through the spec download route. Architect and Chat stay on their own loops.
+- Project-scoped AI history: Architect/Chat messages and spec cards persist per project, survive refresh and project switching, and stay isolated. A Save history toggle and Clear (when off) control stored chat and specs.
 
 ## In Progress
 
@@ -51,7 +54,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Specs tab frontend: trigger spec generation, show the Markdown result, and persist/download (Generate Spec is still a no-op).
+- None.
 
 ## Open Questions
 
@@ -144,6 +147,15 @@ Feature 31:
 - **Chat replies:** `POST /api/ai/chat` triggers `explain-architecture` with `{ projectId, prompt, history? }`, stores a `TaskRun`, and returns `{ runId, publicToken }`. The task reads the Liveblocks canvas, asks Gemini for a text answer, and returns `{ summary }`. It does not mutate nodes/edges or publish `ai-status`. The Chat tab tracks the run with `useRealtimeRun` and broadcasts the reply on `ai-chat`.
 Feature 32:
 - **Spec generation backend:** `POST /api/ai/spec` accepts `{ projectId }` (`roomId` alias) and optional `history`, requires Clerk + project membership, triggers `generate-spec` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId, publicToken }`. `POST /api/ai/spec/token` mints a run-scoped public token only for the TaskRun owner who still has project access. The worker reads the Liveblocks graph (`readCanvasSnapshot`); it does not accept client nodes/edges, mutate the canvas, or publish `ai-status`. Output is `{ title, spec }` Markdown. Specs are not persisted to Prisma or Blob in this unit.
+Feature 33:
+- **Spec persistence:** Prisma `ProjectSpec` stores metadata only (`id`, `projectId`, `filePath`, `createdAt`) with cascade delete and `(projectId, createdAt)` index. Markdown is uploaded to Vercel Blob at `specs/{projectId}/{specId}.md` (private then public, overwrite, no random suffix) via `lib/spec-blob.ts`. `generate-spec` creates the row after Gemini returns, stores the blob URL on `filePath`, and returns `{ title, spec, specId }` without the blob URL. Persistence failures abort the run.
+- **Spec download:** `GET /api/projects/[projectId]/specs/[specId]/download` requires Clerk and project membership (owner or collaborator). It verifies the spec belongs to that project, fetches Markdown from Blob, and returns a `text/markdown` attachment. Missing/unauthorized project or spec → `404`; blob fetch failure → `502`. Blob URLs are not exposed. No Specs-tab UI or list route.
+Feature 34:
+- **Specs tab frontend:** Generate Spec calls `POST /api/ai/spec` with `{ projectId }` and optional `ai-chat` history, tracks the run with `useRealtimeRun` (`hooks/use-spec-generation.ts`), and shows a card with title, snippet, and Markdown/PDF download. Download fetches `/api/projects/[projectId]/specs/[specId]/download?format=` as a blob so the workspace is not left. Spec generation does not publish `ai-status`, lock Architect, or mutate the canvas. Cards are session-only; there is still no specs list API.
+- **Download formats:** `format=markdown` (default) returns the stored Markdown. `format=pdf` converts that Markdown to a PDF on the fly with `pdf-lib` (`lib/spec-pdf.ts`). PDF files are not stored in Blob.
+Feature 35:
+- **Project AI history:** `Project.persistAiData` defaults to true. Architect/Chat messages live in `ProjectChatMessage` (unique per project + message id). Spec cards load from `ProjectSpec` (`title`, `snippet`). GET/PATCH/DELETE `/api/projects/[projectId]/ai-memory` and POST `.../messages` are membership-gated. History is isolated by `projectId`.
+- **Toggle and clear:** Save history on loads and writes chat/specs for that project. Save history off keeps the current session only and shows Clear, which deletes that project’s chat rows, spec rows, and spec blobs. Canvas autosave is unchanged.
 
 ## Session Notes
 
@@ -155,7 +167,7 @@ Feature 32:
 - **Prisma:** Prisma 7.8.0 – generated client goes to `app/generated/prisma/`; import `PrismaClient` from `@/app/generated/prisma/client` (no `index.ts` in v7). Direct Postgres uses `{ adapter }` with `@prisma/adapter-pg`; Accelerate URLs (`prisma+postgress://`) use `{ accelerateUrl }` plus `withAccelerate()`. Client is a lazy proxy so `next build` does not require `DATABASE_URL`.
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
-- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`; generated specs overwrite `specs/{projectId}/{specId}.md`.
 - **Trigger.dev:** `@trigger.dev/sdk` ^4.5.12, `@trigger.dev/build` ^4.5.12, CLI `trigger.dev` ^4.5.12; `trigger.config.ts` project ref `proj_bzliuuxkcnmpifganxmx`; tasks in `trigger/`; worker `runtime: "node-22"`.
 - **Gemini:** `@ai-sdk/google` ^4.0.51 with the `ai` SDK; design generation uses `GOOGLE_AI_API_KEY` first (then `GOOGLE_GENERATIVE_AI_API_KEY`, then `GEMINI_API_KEY`) and `gemini-3.6-flash`.
 - **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

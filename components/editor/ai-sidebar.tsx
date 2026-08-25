@@ -5,16 +5,20 @@ import {
   Bot,
   Download,
   FileText,
+  History,
   Loader2,
   SendHorizontal,
+  Trash2,
   X,
 } from "lucide-react";
 
+import { ClearAiMemoryDialog } from "@/components/editor/clear-ai-memory-dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAiChatFeed } from "@/hooks/use-ai-chat";
+import { useAiMemory } from "@/hooks/use-ai-memory";
 import {
   useAiGenerationActive,
   useAiStatusFeed,
@@ -24,6 +28,11 @@ import {
   useDesignGeneration,
   type DesignRunCompleteResult,
 } from "@/hooks/use-design-generation";
+import {
+  useSpecGeneration,
+  type SpecRunCompleteResult,
+} from "@/hooks/use-spec-generation";
+import { specSnippet } from "@/lib/spec-meta";
 import { cn } from "@/lib/utils";
 import {
   AI_CHAT_FEED,
@@ -31,6 +40,7 @@ import {
   getAiStatusDisplayText,
   type AiChatEvent,
   type AiStatusEvent,
+  type StoredSpecCard,
 } from "@/types/tasks";
 
 const STARTER_PROMPTS = [
@@ -45,11 +55,15 @@ const FALLBACK_SENDER = "Guest";
 const TAB_TRIGGER_CLASS =
   "px-1 text-xs text-copy-muted data-active:bg-accent-dim data-active:text-brand dark:data-active:border-transparent dark:data-active:bg-accent-dim dark:data-active:text-brand";
 
-const DEMO_SPEC = {
-  title: "Checkout service architecture",
-  snippet:
-    "A high-level spec covering the storefront, checkout API, payments, and order events.",
-} as const;
+const DOWNLOAD_ERROR_TEXT = "Couldn't download this spec. Try again.";
+
+type SpecDownloadFormat = "markdown" | "pdf";
+
+interface GeneratedSpecCard {
+  specId: string;
+  title: string;
+  snippet: string;
+}
 
 interface AiSidebarProps {
   isOpen: boolean;
@@ -69,7 +83,14 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   const isGenerating = useAiGenerationActive(status);
   const statusText = status ? getAiStatusDisplayText(status) : "";
   const statusToneClass = getStatusToneClass(status);
-  const chat = useAiChatFeed();
+  const memory = useAiMemory(projectId);
+  const chat = useAiChatFeed({
+    projectId,
+    seedMessages: memory.seedMessages,
+    seedGeneration: memory.seedGeneration,
+    persistEnabled: memory.persistEnabled,
+    onPersistMessage: memory.persistMessage,
+  });
   const sendAssistantMessage = chat.sendAssistantMessage;
 
   const handleRunComplete = useCallback(
@@ -87,12 +108,65 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
     projectId,
     onRunComplete: handleRunComplete,
   });
+  const [generatedSpecs, setGeneratedSpecs] = useState<GeneratedSpecCard[]>(
+    [],
+  );
+  const [specCompleteError, setSpecCompleteError] = useState<string | null>(
+    null,
+  );
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+
+  const handleSpecComplete = useCallback((result: SpecRunCompleteResult) => {
+    if (!result.ok || result.specId.length === 0) {
+      setSpecCompleteError(result.message);
+      return;
+    }
+
+    setSpecCompleteError(null);
+    setGeneratedSpecs((current) => [
+      {
+        specId: result.specId,
+        title: result.title,
+        snippet: specSnippet(result.spec),
+      },
+      ...current,
+    ]);
+  }, [setGeneratedSpecs, setSpecCompleteError]);
+
+  const specGeneration = useSpecGeneration({
+    projectId,
+    onRunComplete: handleSpecComplete,
+  });
+
+  const specs: StoredSpecCard[] = memory.persistEnabled
+    ? [
+        ...generatedSpecs,
+        ...memory.seedSpecs.filter(
+          (spec) =>
+            !generatedSpecs.some((item) => item.specId === spec.specId),
+        ),
+      ]
+    : generatedSpecs;
 
   const isBusy = isGenerating || generation.isActive;
   const isChatBusy = chatReply.isActive;
-  const headerBusy = isBusy || isChatBusy;
+  const isSpecBusy = specGeneration.isActive;
+  const headerBusy = isBusy || isChatBusy || isSpecBusy;
+
+  const handleClearSaved = async () => {
+    setIsClearing(true);
+    const ok = await memory.clearSaved();
+    setIsClearing(false);
+
+    if (ok) {
+      setGeneratedSpecs([]);
+      setIsClearDialogOpen(false);
+    }
+  };
 
   return (
+    <>
     <aside
       aria-hidden={!isOpen}
       data-ai-status-feed={AI_STATUS_FEED}
@@ -115,6 +189,10 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
             {isChatBusy ? (
               <p role="status" aria-live="polite" className="truncate text-xs text-ai-text">
                 Thinking…
+              </p>
+            ) : isSpecBusy ? (
+              <p role="status" aria-live="polite" className="truncate text-xs text-ai-text">
+                Writing specification…
               </p>
             ) : statusText ? (
               <p
@@ -140,6 +218,44 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
           <X />
         </Button>
       </div>
+
+      <div className="flex items-center gap-2 border-b border-surface-border px-4 py-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="min-w-0 flex-1 justify-start text-copy-muted"
+          aria-pressed={memory.persistEnabled}
+          onClick={() => {
+            void memory.setPersistEnabled(
+              !memory.persistEnabled,
+              chat.messages,
+            );
+          }}
+        >
+          <History />
+          {memory.persistEnabled ? "Save history on" : "Save history off"}
+        </Button>
+        {!memory.persistEnabled ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!memory.hasSavedData || isClearing}
+            onClick={() => {
+              setIsClearDialogOpen(true);
+            }}
+          >
+            <Trash2 />
+            Clear
+          </Button>
+        ) : null}
+      </div>
+      {memory.error ? (
+        <p className="px-4 py-2 text-xs text-state-error" role="alert">
+          {memory.error}
+        </p>
+      ) : null}
 
       <Tabs
         defaultValue="ai-architect"
@@ -189,10 +305,41 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
           value="specs"
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
         >
-          <SpecsTab />
+          <SpecsTab
+            projectId={projectId}
+            specs={specs}
+            isBusy={isSpecBusy}
+            triggerError={specCompleteError ?? specGeneration.error}
+            onClearTriggerError={() => {
+              setSpecCompleteError(null);
+              specGeneration.clearError();
+            }}
+            onGenerate={() => {
+              setSpecCompleteError(null);
+              return specGeneration.startSpec(
+                chat.messages.map((message) => ({
+                  role: message.role,
+                  content: message.content,
+                })),
+              );
+            }}
+          />
         </TabsContent>
       </Tabs>
     </aside>
+    <ClearAiMemoryDialog
+      open={isClearDialogOpen}
+      onOpenChange={(open) => {
+        if (!isClearing) {
+          setIsClearDialogOpen(open);
+        }
+      }}
+      isLoading={isClearing}
+      onConfirm={() => {
+        void handleClearSaved();
+      }}
+    />
+    </>
   );
 }
 
@@ -546,36 +693,167 @@ function ChatTab({
   );
 }
 
-function SpecsTab() {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4">
-      <Button
-        type="button"
-        className="w-full bg-brand text-primary-foreground hover:bg-brand/80"
-      >
-        Generate Spec
-      </Button>
+async function downloadGeneratedSpec(
+  projectId: string,
+  specId: string,
+  format: SpecDownloadFormat,
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `/api/projects/${encodeURIComponent(projectId)}/specs/${encodeURIComponent(specId)}/download?format=${format}`,
+    );
 
-      <article className="rounded-2xl border border-surface-border bg-elevated p-3">
-        <div className="flex items-start gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-surface text-copy-muted">
-            <FileText className="size-4" aria-hidden />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-medium text-copy">{DEMO_SPEC.title}</h3>
-            <p className="mt-1 text-xs text-copy-muted">{DEMO_SPEC.snippet}</p>
-          </div>
-        </div>
+    if (!response.ok) {
+      return false;
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = `${specId}.${format === "pdf" ? "pdf" : "md"}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function SpecsTab({
+  projectId,
+  specs,
+  isBusy,
+  triggerError,
+  onClearTriggerError,
+  onGenerate,
+}: {
+  projectId: string;
+  specs: GeneratedSpecCard[];
+  isBusy: boolean;
+  triggerError: string | null;
+  onClearTriggerError: () => void;
+  onGenerate: () => Promise<boolean>;
+}) {
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
+  const displayError = triggerError ?? downloadError;
+
+  const handleGenerate = () => {
+    setDownloadError(null);
+    onClearTriggerError();
+    void onGenerate();
+  };
+
+  const handleDownload = async (
+    specId: string,
+    format: SpecDownloadFormat,
+  ) => {
+    setDownloadError(null);
+    setDownloadingKey(`${specId}:${format}`);
+    const ok = await downloadGeneratedSpec(projectId, specId, format);
+    setDownloadingKey(null);
+
+    if (!ok) {
+      setDownloadError(DOWNLOAD_ERROR_TEXT);
+    }
+  };
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex flex-col gap-4 px-4 py-4">
         <Button
           type="button"
-          variant="outline"
-          className="mt-3 w-full"
-          disabled
+          className="w-full bg-brand text-primary-foreground hover:bg-brand/80"
+          onClick={handleGenerate}
+          disabled={isBusy}
         >
-          <Download />
-          Download
+          {isBusy ? <Loader2 className="animate-spin" /> : null}
+          {isBusy ? "Generating…" : "Generate Spec"}
         </Button>
-      </article>
+        {isBusy ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-xs text-ai-text"
+          >
+            Writing a specification from the current canvas…
+          </p>
+        ) : null}
+        {displayError ? (
+          <p className="text-xs text-state-error" role="alert">
+            {displayError}
+          </p>
+        ) : null}
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1 px-4 pb-4">
+        {specs.length === 0 && !isBusy ? (
+          <p className="text-sm text-copy-muted">
+            Generate a technical spec from the architecture on the canvas. It
+            will appear here so you can download Markdown or PDF.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {specs.map((spec) => (
+              <article
+                key={spec.specId}
+                className="rounded-2xl border border-surface-border bg-elevated p-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-surface text-copy-muted">
+                    <FileText className="size-4" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-medium text-copy">
+                      {spec.title}
+                    </h3>
+                    {spec.snippet ? (
+                      <p className="mt-1 text-xs text-copy-muted">
+                        {spec.snippet}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={downloadingKey !== null}
+                    onClick={() => {
+                      void handleDownload(spec.specId, "markdown");
+                    }}
+                  >
+                    {downloadingKey === `${spec.specId}:markdown` ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Download />
+                    )}
+                    Markdown
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={downloadingKey !== null}
+                    onClick={() => {
+                      void handleDownload(spec.specId, "pdf");
+                    }}
+                  >
+                    {downloadingKey === `${spec.specId}:pdf` ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Download />
+                    )}
+                    PDF
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 }

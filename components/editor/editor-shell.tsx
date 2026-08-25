@@ -118,6 +118,7 @@ export function EditorShell({
                 saveNowRef={saveNowRef}
               />
               <AiSidebar
+                key={activeProjectId}
                 isOpen={isAiSidebarOpen}
                 onClose={() => setIsAiSidebarOpen(false)}
                 projectId={activeProjectId}

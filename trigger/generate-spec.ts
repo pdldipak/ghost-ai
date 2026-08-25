@@ -6,6 +6,9 @@ import { readCanvasSnapshot } from "@/lib/ai-canvas-snapshot";
 import { generateText } from "@/lib/ai-sdk";
 import { getGeminiApiKey } from "@/lib/gemini";
 import { liveblocks } from "@/lib/liveblocks";
+import { prisma } from "@/lib/prisma";
+import { putSpecMarkdown } from "@/lib/spec-blob";
+import { specSnippet, specTitle } from "@/lib/spec-meta";
 import type { AiChatRole } from "@/types/tasks";
 
 interface ChatHistoryTurn {
@@ -22,7 +25,6 @@ interface GenerateSpecPayload {
 
 const MAX_HISTORY_TURNS = 8;
 const MAX_TURN_CHARS = 2000;
-const FALLBACK_TITLE = "Technical specification";
 
 function readPayloadString(...values: unknown[]): string {
   for (const value of values) {
@@ -83,11 +85,40 @@ function unwrapMarkdown(text: string): string {
   return (fenced?.[1] ?? trimmed).trim();
 }
 
-function readTitle(markdown: string): string {
-  const heading = markdown.match(/^#\s+(.+?)\s*$/m);
-  const title = heading?.[1]?.replace(/\s+/g, " ").trim() ?? "";
+async function persistGeneratedSpec(
+  projectId: string,
+  markdown: string,
+): Promise<string> {
+  try {
+    const record = await prisma.projectSpec.create({
+      data: {
+        projectId,
+        filePath: `specs/${projectId}/pending.md`,
+        title: specTitle(markdown),
+        snippet: specSnippet(markdown),
+      },
+    });
 
-  return title || FALLBACK_TITLE;
+    const filePath = await putSpecMarkdown(projectId, record.id, markdown);
+
+    await prisma.projectSpec.update({
+      where: { id: record.id },
+      data: { filePath },
+    });
+
+    return record.id;
+  } catch (error) {
+    if (error instanceof AbortTaskRunError) {
+      throw error;
+    }
+
+    const message =
+      error instanceof Error && error.message.trim().length > 0
+        ? error.message
+        : "Failed to persist specification";
+
+    throw new AbortTaskRunError(message);
+  }
 }
 
 function buildSystemPrompt(): string {
@@ -175,9 +206,12 @@ export const generateSpec = task({
       );
     }
 
+    const specId = await persistGeneratedSpec(roomId, spec);
+
     return {
-      title: readTitle(spec),
+      title: specTitle(spec),
       spec,
+      specId,
     };
   },
 });

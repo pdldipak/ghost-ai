@@ -10,11 +10,14 @@ model Project {
   description    String?
   status         ProjectStatus @default(DRAFT)
   canvasJsonPath String
+  persistAiData  Boolean       @default(true)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   collaborators ProjectCollaborator[]
   taskRuns      TaskRun[]
+  specs         ProjectSpec[]
+  chatMessages  ProjectChatMessage[]
 
   @@index([ownerId])
   @@index([createdAt])

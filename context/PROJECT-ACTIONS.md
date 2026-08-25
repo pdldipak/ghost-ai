@@ -106,3 +106,9 @@ After finishing a task, **append one row** to the table below (do not edit or re
 | 2026-08-25 | Wired Chat questions to Gemini via `explain-architecture` so Ghost AI replies about the current canvas without changing the graph |
 | 2026-08-25 | Tightened `31-spec-generation-flow.md` into an implementation prompt against the existing design/chat trigger pattern, Liveblocks canvas snapshot, and Specs-tab placeholder |
 | 2026-08-25 | Added membership-gated spec trigger/token APIs and a Gemini `generate-spec` task that turns the Liveblocks canvas into Markdown without changing the graph |
+| 2026-08-25 | Tightened `33-spec-persistence-download.md` into an implementation prompt against the existing `generate-spec` task, canvas Blob helper, and Prisma multi-file schema |
+| 2026-08-25 | Added Prisma `ProjectSpec`, Blob persistence in `generate-spec`, and a membership-gated spec download route so generated Markdown can be stored and retrieved |
+| 2026-08-25 | Wired the Specs tab Generate Spec button to `/api/ai/spec` with realtime run tracking, result cards, and authenticated Markdown download |
+| 2026-08-25 | Added Markdown and PDF download choices on spec cards, converting stored Markdown to PDF on the fly |
+| 2026-08-25 | Persisted Architect chat, Chat, and spec cards per project, with a Save history toggle and a project-scoped Clear action |
+| 2026-08-25 | Replaced the browser confirm for clearing AI history with a themed EditorDialog modal |

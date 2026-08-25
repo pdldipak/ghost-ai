@@ -191,3 +191,101 @@ export function parseDesignTriggerResponse(
     publicToken: body.publicToken.trim(),
   };
 }
+
+export interface SpecRunOutput {
+  title: string;
+  spec: string;
+  specId: string;
+}
+
+export function parseSpecRunOutput(value: unknown): SpecRunOutput | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const output = value as Record<string, unknown>;
+
+  if (
+    !isNonEmptyString(output.title) ||
+    !isNonEmptyString(output.spec) ||
+    !isNonEmptyString(output.specId)
+  ) {
+    return null;
+  }
+
+  return {
+    title: output.title.trim(),
+    spec: output.spec.trim(),
+    specId: output.specId.trim(),
+  };
+}
+
+export interface StoredSpecCard {
+  specId: string;
+  title: string;
+  snippet: string;
+}
+
+export interface AiMemorySnapshot {
+  persistAiData: boolean;
+  hasSavedData: boolean;
+  messages: AiChatEvent[];
+  specs: StoredSpecCard[];
+}
+
+export function parseStoredSpecCard(value: unknown): StoredSpecCard | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const card = value as Record<string, unknown>;
+
+  if (!isNonEmptyString(card.specId) || !isNonEmptyString(card.title)) {
+    return null;
+  }
+
+  return {
+    specId: card.specId.trim(),
+    title: card.title.trim(),
+    snippet: typeof card.snippet === "string" ? card.snippet.trim() : "",
+  };
+}
+
+export function parseAiMemorySnapshot(value: unknown): AiMemorySnapshot | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const body = value as Record<string, unknown>;
+
+  if (typeof body.persistAiData !== "boolean" || typeof body.hasSavedData !== "boolean") {
+    return null;
+  }
+
+  if (!Array.isArray(body.messages) || !Array.isArray(body.specs)) {
+    return null;
+  }
+
+  const messages: AiChatEvent[] = [];
+  for (const item of body.messages) {
+    const parsed = parseAiChatEvent(item);
+    if (parsed) {
+      messages.push(parsed);
+    }
+  }
+
+  const specs: StoredSpecCard[] = [];
+  for (const item of body.specs) {
+    const parsed = parseStoredSpecCard(item);
+    if (parsed) {
+      specs.push(parsed);
+    }
+  }
+
+  return {
+    persistAiData: body.persistAiData,
+    hasSavedData: body.hasSavedData,
+    messages,
+    specs,
+  };
+}

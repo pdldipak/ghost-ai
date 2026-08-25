@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useBroadcastEvent,
   useEventListener,
@@ -30,12 +30,36 @@ function appendMessage(
   return [...current, incoming];
 }
 
-export function useAiChatFeed() {
-  const [messages, setMessages] = useState<AiChatEvent[]>([]);
+interface UseAiChatFeedOptions {
+  projectId: string;
+  seedMessages: AiChatEvent[];
+  seedGeneration: number;
+  persistEnabled: boolean;
+  onPersistMessage: (message: AiChatEvent) => void;
+}
+
+export function useAiChatFeed({
+  seedMessages,
+  seedGeneration,
+  persistEnabled,
+  onPersistMessage,
+}: UseAiChatFeedOptions) {
+  const [messages, setMessages] = useState<AiChatEvent[]>(seedMessages);
   const broadcast = useBroadcastEvent();
   const connectionStatus = useStatus();
   const selfId = useSelf((me) => me.id);
   const selfName = useSelf((me) => me.info.name);
+  const persistRef = useRef({ persistEnabled, onPersistMessage, seedMessages });
+  const [seenGeneration, setSeenGeneration] = useState(seedGeneration);
+
+  if (seenGeneration !== seedGeneration) {
+    setSeenGeneration(seedGeneration);
+    setMessages(seedMessages);
+  }
+
+  useEffect(() => {
+    persistRef.current = { persistEnabled, onPersistMessage, seedMessages };
+  }, [onPersistMessage, persistEnabled, seedMessages]);
 
   useEventListener(({ event }) => {
     const parsed = parseAiChatEvent(event);
@@ -45,6 +69,9 @@ export function useAiChatFeed() {
     }
 
     setMessages((current) => appendMessage(current, parsed));
+    if (persistRef.current.persistEnabled) {
+      persistRef.current.onPersistMessage(parsed);
+    }
   });
 
   const sendChatMessage = useCallback(
@@ -82,12 +109,22 @@ export function useAiChatFeed() {
       try {
         broadcast(parsed);
         setMessages((current) => appendMessage(current, parsed));
+        if (persistEnabled) {
+          onPersistMessage(parsed);
+        }
         return true;
       } catch {
         return false;
       }
     },
-    [broadcast, connectionStatus, selfId, selfName],
+    [
+      broadcast,
+      connectionStatus,
+      onPersistMessage,
+      persistEnabled,
+      selfId,
+      selfName,
+    ],
   );
 
   const sendMessage = useCallback(
