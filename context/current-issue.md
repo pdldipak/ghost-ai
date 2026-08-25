@@ -43,17 +43,16 @@ I will reply with one of the following:
 
 ## Current Issue
 [## Error Type]
-console  erroor 
-
+console error 
+Getting following error when creating any shape 
 
 ## Error Message
 [------start----
-[Liveblocks "Authentication failed: Failed to authenticate: reason not provided in auth response (500 returned by POST /api/liveblocks-auth)"
+Console Error
 
 
-----End------
 
-]
+----End------]
 
 
 ### Check When Done 

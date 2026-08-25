@@ -80,6 +80,17 @@ export function getThemeDefinition(id: ThemeId): ThemeDefinition {
   return match ?? THEMES[0];
 }
 
+export const CANVAS_EDGE_ON_DARK = "#f8fafc";
+export const CANVAS_EDGE_ON_LIGHT = "#18181c";
+
+export function contrastingCanvasEdge(backgroundHex: string): string {
+  const red = Number.parseInt(backgroundHex.slice(1, 3), 16);
+  const green = Number.parseInt(backgroundHex.slice(3, 5), 16);
+  const blue = Number.parseInt(backgroundHex.slice(5, 7), 16);
+  const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+  return luminance > 0.55 ? CANVAS_EDGE_ON_LIGHT : CANVAS_EDGE_ON_DARK;
+}
+
 export function applyDocumentTheme(
   theme: ThemeId,
   customBackground: string | null,
@@ -90,8 +101,13 @@ export function applyDocumentTheme(
 
   if (customBackground) {
     root.style.setProperty("--bg-base", customBackground);
+    root.style.setProperty(
+      "--canvas-edge",
+      contrastingCanvasEdge(customBackground),
+    );
   } else {
     root.style.removeProperty("--bg-base");
+    root.style.removeProperty("--canvas-edge");
   }
 }
 
@@ -131,4 +147,4 @@ export function persistCustomBackground(color: string | null): void {
   }
 }
 
-export const THEME_BOOTSTRAP_SCRIPT = `(function(){try{var allowed=${JSON.stringify(THEME_IDS)};var theme=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});if(allowed.indexOf(theme)===-1)theme=${JSON.stringify(DEFAULT_THEME_ID)};document.documentElement.dataset.theme=theme;document.documentElement.classList.add("dark");var custom=localStorage.getItem(${JSON.stringify(CUSTOM_BG_STORAGE_KEY)});if(custom&&${CUSTOM_BG_PATTERN.toString()}.test(custom)){document.documentElement.style.setProperty("--bg-base",custom);}}catch(e){}})();`;
+export const THEME_BOOTSTRAP_SCRIPT = `(function(){try{var allowed=${JSON.stringify(THEME_IDS)};var theme=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});if(allowed.indexOf(theme)===-1)theme=${JSON.stringify(DEFAULT_THEME_ID)};document.documentElement.dataset.theme=theme;document.documentElement.classList.add("dark");var custom=localStorage.getItem(${JSON.stringify(CUSTOM_BG_STORAGE_KEY)});if(custom&&${CUSTOM_BG_PATTERN.toString()}.test(custom)){var r=parseInt(custom.slice(1,3),16),g=parseInt(custom.slice(3,5),16),b=parseInt(custom.slice(5,7),16);var edge=(0.299*r+0.587*g+0.114*b)/255>0.55?${JSON.stringify(CANVAS_EDGE_ON_LIGHT)}:${JSON.stringify(CANVAS_EDGE_ON_DARK)};document.documentElement.style.setProperty("--bg-base",custom);document.documentElement.style.setProperty("--canvas-edge",edge);}}catch(e){}})();`;

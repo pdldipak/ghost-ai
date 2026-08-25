@@ -1,3 +1,5 @@
+import type { AiChatEvent, AiStatusEvent } from "@/types/tasks";
+
 // Define Liveblocks types for your application
 // https://liveblocks.io/docs/api-reference/liveblocks-react#Typing-your-data
 declare global {
@@ -18,7 +20,7 @@ declare global {
       };
     };
 
-    RoomEvent: Record<string, never>;
+    RoomEvent: AiStatusEvent | AiChatEvent;
 
     ThreadMetadata: Record<string, never>;
 

@@ -117,11 +117,11 @@ export function EditorShell({
                 onSaveStatusChange={setSaveStatus}
                 saveNowRef={saveNowRef}
               />
+              <AiSidebar
+                isOpen={isAiSidebarOpen}
+                onClose={() => setIsAiSidebarOpen(false)}
+              />
             </CanvasRoom>
-            <AiSidebar
-              isOpen={isAiSidebarOpen}
-              onClose={() => setIsAiSidebarOpen(false)}
-            />
           </>
         ) : (
           <EditorHome onNewProject={projectActions.openCreateDialog} />

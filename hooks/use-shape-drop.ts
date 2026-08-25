@@ -5,6 +5,7 @@ import { useReactFlow, type OnNodesChange } from "@xyflow/react";
 
 import {
   createDroppedCanvasNode,
+  isFinitePosition,
   parseShapeDragPayload,
 } from "@/lib/canvas-nodes";
 import { SHAPE_DRAG_MIME, type CanvasNode } from "@/types/canvas";
@@ -28,6 +29,10 @@ export function useShapeDrop(onNodesChange: OnNodesChange<CanvasNode>) {
         return;
       }
 
+      if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) {
+        return;
+      }
+
       const cursor = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -36,6 +41,9 @@ export function useShapeDrop(onNodesChange: OnNodesChange<CanvasNode>) {
         x: cursor.x - payload.width / 2,
         y: cursor.y - payload.height / 2,
       };
+      if (!isFinitePosition(position)) {
+        return;
+      }
 
       onNodesChange([
         {

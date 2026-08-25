@@ -45,7 +45,10 @@ export function CanvasControlBar() {
   }, [reactFlow]);
 
   const fitView = useCallback(() => {
-    void reactFlow.fitView({ duration: CANVAS_ZOOM_DURATION_MS });
+    void reactFlow.fitView({
+      duration: CANVAS_ZOOM_DURATION_MS,
+      includeHiddenNodes: true,
+    });
   }, [reactFlow]);
 
   return (

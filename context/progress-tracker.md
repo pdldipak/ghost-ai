@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation — user-selectable background themes
+- Foundation — AI architecture generation
 
 ## Current Goal
 
-- Choose the next feature unit after user-selectable backgrounds.
+- Choose the next feature unit after room-scoped Architect chat (wire chat to the design API, or spec generation).
 
 ## Completed
 
@@ -35,6 +35,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Canvas autosave (`feature-specs/21-canvas-autosave.md`): `@vercel/blob` installed; `PUT`/`GET` `/api/projects/[projectId]/canvas` upload nodes/edges to `canvas/{projectId}.json` and store the blob URL on `canvasJsonPath`; empty Liveblocks rooms restore once from blob; `useCanvasAutosave` debounce-saves at 1500ms; workspace navbar Save control shows idle/saving/saved/error.
 - Canvas interaction bugfixes (`feature-specs/22-delete-nodes-edge.md`): shape-panel drops center the node on the cursor; React Flow boolean `fitView` removed so the first drop does not auto-zoom (non-empty rooms still fit once on init; restore/import/Fit button unchanged); `img.clerk.com` allowed via `next.config.ts` `images.remotePatterns`. Delete, four-side handles, and workspace navbar `UserButton` hiding were already in place.
 - User-selectable backgrounds (`feature-specs/23-user-selectable-bg.md`): CSS variable themes (`dark`, `light`, `midnight`, `ocean`, `forest`) with Dark as the default; `ThemeProvider` + localStorage persistence; icon-only navbar appearance panel with theme previews and a custom `--bg-base` color; canvas `NODE_COLORS` and edge strokes unchanged.
+- Trigger.dev setup (`feature-specs/24-trigger-setup.md`): worker runtime `node-22`; `generate-architecture` and `generate-spec` product tasks; pinned `trigger.dev` CLI 4.5.12; `trigger:dev` / `trigger:deploy` scripts; `TRIGGER_SECRET_KEY` documented. No AI jobs, Prisma worker extension, or trigger API routes.
+- Design agent API (`feature-specs/25-design-agent-api.md`): Prisma `TaskRun` with unique `runId` and project cascade; membership-gated `POST /api/ai/design` triggers `generate-architecture` via type-only `tasks.trigger` and stores the run; `POST /api/ai/design/token` mints a run-scoped public token for the TaskRun owner; task remains a no-AI stub. No UI, Liveblocks, or canvas writes.
+- Design agent logic (`feature-specs/26-design-agent-logic.md`): `generate-architecture` uses Gemini to plan canvas operations, applies them through Liveblocks `mutateFlow`, and publishes AI presence (`cursor` / `isThinking`) plus room-event status (start / processing / complete / failure). No API or AI sidebar wiring.
+- AI presence state (`feature-specs/27-ai-presence-state.md`): shared `ai-status` feed in the AI sidebar, validated payload in `types/tasks.ts`, composer lock while generation is active, and a thinking spinner on live-cursor badges. No design-API or generation-flow wiring.
+- Sidebar chat feed (`feature-specs/28-sidebar-chat-feed.md`): room-scoped `ai-chat` RoomEvents in the Architect tab, validated payload in `types/tasks.ts`, sender/timestamp bubbles, send error on failure, no assistant placeholder. No design-API wiring, Storage, Feeds/Inbox, Prisma, or Blob.
 
 ## In Progress
 
@@ -42,7 +47,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Choose the next feature unit after user-selectable backgrounds.
+- Wire the AI Architect chat to `POST /api/ai/design`, or start spec generation, now that room-scoped `ai-chat` is in place.
 
 ## Open Questions
 
@@ -109,8 +114,22 @@ Feature 22:
 Feature 23:
 - **Theme tokens:** Semantic project tokens stay in `globals.css` and `@theme inline`. `data-theme` on `<html>` swaps token values for `dark` (default), `light`, `midnight`, `ocean`, and `forest`. The existing Dark palette is unchanged. The `.dark` class remains on `<html>` so shadcn `dark:` utilities do not apply the default light palette.
 - **Persistence:** `ThemeProvider` reads/writes `localStorage` (`ghost-ai-theme`, `ghost-ai-custom-bg`). A bootstrap script in the root layout applies the stored theme before paint. Custom color sets only `--bg-base` as an inline style so surfaces, text, borders, and accents keep the active theme.
-- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` and edge stroke colors stay independent of the UI theme.
+- **Selector UX:** Icon-only `ThemeSelector` in the editor navbar (after workspace actions, before the home `UserButton`) so Save / Templates / Share / AI toggle layout is unchanged. Canvas `NODE_COLORS` stay independent of the UI theme. Connector strokes use `--canvas-edge` (light on dark themes, dark on Light / light custom `--bg-base`) so they stay visible when the page background changes.
 - **Accent contrast:** `--primary-foreground` and `--sidebar-primary-foreground` map to `--accent-contrast` (`#080809`) instead of `--bg-base` so a custom page background cannot wash out accent-button text. Default Dark appearance is unchanged.
+Feature 24:
+- **Trigger.dev:** Background tasks live in `trigger/` (`dirs: ["./trigger"]`). Worker runtime is `node-22` to match the app. `@trigger.dev/sdk` 4.5.12, `@trigger.dev/build` 4.5.12, and CLI `trigger.dev` 4.5.12 are pinned together. `npm run dev` stays Next-only; run `npm run trigger:dev` in a second process. Prisma worker extension, React hooks, and AI tasks are deferred until those features are implemented. Trigger tasks from the app with type-only imports plus `tasks.trigger`, never by importing the task instance.
+Feature 25:
+- **Task runs:** Prisma `TaskRun` stores Trigger.dev `runId` (unique), `projectId` (cascade from `Project`), and the Clerk `userId` who triggered the run. Compound index on `(userId, projectId)`. No status or task-type fields.
+- **Design trigger API:** `POST /api/ai/design` accepts `{ prompt, projectId }`, requires Clerk + project membership (owner or collaborator), triggers `generate-architecture` with a type-only import plus `tasks.trigger`, persists a `TaskRun`, and returns `{ runId }` without waiting for the job.
+- **Run token API:** `POST /api/ai/design/token` accepts `{ runId }` and mints `auth.createPublicToken` scoped to that run only. The token is issued only to the `TaskRun` owner who still has project access. Response is `{ token }`. Secret keys never leave the server.
+- **Design task:** Reuse `trigger/generate-architecture.ts` (`id: "generate-architecture"`, payload `{ projectId, prompt }`). It logs/echoes input only — no AI, Liveblocks, Prisma, or Blob. `projectId` is the Liveblocks room ID.
+Feature 26:
+- **Design agent:** `generate-architecture` reads the current Liveblocks React Flow graph, asks Gemini (`@ai-sdk/google`, `gemini-3.6-flash`) for a canvas operation plan, validates it, then applies add/move/resize/update/delete node and add/delete edge through `mutateFlow` from `@liveblocks/react-flow/node`. Invalid plans (including non-finite positions/sizes) are not applied. The canvas is not wiped unless the prompt asks to replace or generate a new design. Official payload remains `{ projectId, prompt }` (`projectId` is the Liveblocks room ID); the worker also accepts `roomId` as an alias for dashboard tests. API key lookup is `GOOGLE_AI_API_KEY`, then `GOOGLE_GENERATIVE_AI_API_KEY`, then `GEMINI_API_KEY`.
+- **Presence and status:** The agent uses ephemeral Liveblocks presence as user `ghost-ai` with existing fields only (`cursor`, `isThinking`). Progress is broadcast as `RoomEvent` `{ type: "ai-status", step, message }` for start / processing / complete / failure. Presence is cleared when the task finishes. No new Storage keys, APIs, or AI sidebar wiring.
+Feature 27:
+- **Shared AI activity:** Clients subscribe to the existing `ai-status` room events as `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`step`, optional `text`, fallback `message`) and is validated before display. Generation is active when the latest status is `start`/`processing` or any presence has `isThinking: true`. The AI sidebar shows the latest message, locks only the Architect composer, and live-cursor badges show a spinner while thinking. No Storage keys, Feeds/Inbox, new presence fields, or `/api/ai/design` wiring.
+Feature 28:
+- **Shared Architect chat:** Clients subscribe to a separate `ai-chat` RoomEvent channel (`AI_CHAT_FEED`), not `ai-status-feed`. Payload schema lives in `types/tasks.ts` (`type`, `id`, `sender`, `senderId`, `role`, `content`, `timestamp`) and is validated before display. Human sends are `role: "user"` via `useBroadcastEvent`; the sender is Liveblocks `UserMeta.info.name`. Own messages stay right-aligned using `senderId`. No Storage, Feeds/Inbox, Comments, Prisma, Blob, or `/api/ai/design` wiring.
 
 ## Session Notes
 
@@ -123,4 +142,6 @@ Feature 23:
 - **Prisma Config:** `prisma.config.ts` uses `schema: "prisma/"` (multi-file schema) and reads `DATABASE_URL` from `.env` via dotenv.
 - Room ID remains the project ID (`/editor/[projectId]`); feature 08 refers to this as the room route.
 - **Vercel Blob:** `@vercel/blob` ^2.8.0; server uploads use `BLOB_READ_WRITE_TOKEN`; canvas snapshots overwrite `canvas/{projectId}.json`.
+- **Trigger.dev:** `@trigger.dev/sdk` ^4.5.12, `@trigger.dev/build` ^4.5.12, CLI `trigger.dev` ^4.5.12; `trigger.config.ts` project ref `proj_bzliuuxkcnmpifganxmx`; tasks in `trigger/`; worker `runtime: "node-22"`.
+- **Gemini:** `@ai-sdk/google` ^4.0.51 with the `ai` SDK; design generation uses `GOOGLE_AI_API_KEY` first (then `GOOGLE_GENERATIVE_AI_API_KEY`, then `GEMINI_API_KEY`) and `gemini-3.6-flash`.
 - **Runtime:** Node.js 22 (`>=22.12.0 <23`) with npm 10 — pinned in `.nvmrc`, CI (`node-version-file`), Docker (`node:22-alpine`), and `package.json` `engines`. Generate `package-lock.json` on this runtime so `npm ci` keeps nested optional `utf-8-validate@5.0.10` (npm 11 on Node 24 omits those entries).

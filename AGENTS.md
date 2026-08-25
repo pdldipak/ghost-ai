@@ -23,3 +23,9 @@ If implementation changes the architecture, scope, or standards documented in th
 - Append one row to `context/PROJECT-ACTIONS.md` (follow the rules at the top of that file)
 - Update `context/progress-tracker.md` if phase, scope, or implementation state changed
 - Update any other context file if architecture, scope, or standards documented there changed
+
+<!-- TRIGGER.DEV SKILLS START -->
+## Trigger.dev agent skills
+
+This project has Trigger.dev agent skills installed in `.agents/skills/`. Before writing or changing Trigger.dev code (background tasks, scheduled tasks, realtime, or chat.agent AI agents), load the most relevant skill: `trigger-authoring-chat-agent`.
+<!-- TRIGGER.DEV SKILLS END -->

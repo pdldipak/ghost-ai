@@ -18,6 +18,7 @@ function LiveCursor({ connectionId, currentUserId }: LiveCursorProps) {
     (user) => ({
       id: user.id,
       cursor: user.presence.cursor,
+      isThinking: user.presence.isThinking,
       name: user.info.name,
       color: user.info.color,
     }),
@@ -29,7 +30,7 @@ function LiveCursor({ connectionId, currentUserId }: LiveCursorProps) {
   }
 
   const name = other.name.trim() || FALLBACK_NAME;
-  const scale = zoom === 0 ? 1 : 1 / zoom;
+  const scale = Number.isFinite(zoom) && zoom !== 0 ? 1 / zoom : 1;
 
   return (
     <div
@@ -55,13 +56,19 @@ function LiveCursor({ connectionId, currentUserId }: LiveCursorProps) {
         />
       </svg>
       <span
-        className="absolute top-4 left-3 max-w-32 truncate rounded-xl px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap"
+        className="absolute top-4 left-3 flex max-w-40 items-center gap-1 rounded-xl px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap"
         style={{
           backgroundColor: other.color,
           color: "var(--bg-base)",
         }}
       >
-        {name}
+        <span className="truncate">{name}</span>
+        {other.isThinking === true ? (
+          <span
+            className="size-2.5 shrink-0 animate-spin rounded-full border border-current border-t-transparent"
+            aria-hidden
+          />
+        ) : null}
       </span>
     </div>
   );

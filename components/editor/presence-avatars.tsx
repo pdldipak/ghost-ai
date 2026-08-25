@@ -13,6 +13,7 @@ interface CollaboratorInfo {
   name: string;
   avatar: string;
   color: string;
+  isThinking: boolean;
 }
 
 function getInitials(name: string): string {
@@ -38,6 +39,7 @@ function CollaboratorAvatar({ collaborator }: { collaborator: CollaboratorInfo }
       className={cn(
         AVATAR_SIZE_CLASS,
         "relative overflow-hidden rounded-full border-2 border-base",
+        collaborator.isThinking && "ring-2 ring-ai-text",
       )}
       style={{ backgroundColor: collaborator.color }}
       aria-hidden
@@ -67,6 +69,7 @@ export function PresenceAvatars() {
       name: other.info.name,
       avatar: other.info.avatar,
       color: other.info.color,
+      isThinking: other.presence.isThinking,
     }),
     shallow,
   );

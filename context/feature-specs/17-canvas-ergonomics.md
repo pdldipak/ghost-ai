@@ -30,12 +30,14 @@ Add a floating control bar for zoom and undo/redo, then wire the same actions to
    - listen for keyboard shortcuts on `window`
    - ignore shortcuts while typing in inputs, textareas, or editable text fields 
 
-   5. Support these shortcuts:
+5. Support these shortcuts:
    - `+` or `=` to zoom in
    - `-` to zoom out
    - `Cmd/Ctrl + Z` to undo
    - `Cmd/Ctrl + Shift + Z` to redo
    - `Cmd/Ctrl + Y` to redo
+
+6. Remove the minimap at the bottom right 
 
 ## Scope Limits
 

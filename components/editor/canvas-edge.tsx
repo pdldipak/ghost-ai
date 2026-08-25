@@ -11,6 +11,7 @@ import {
 import { EdgeLabel } from "@/components/editor/edge-label";
 import { CANVAS_EDGE_STYLE } from "@/lib/canvas-edges";
 import {
+  DEFAULT_EDGE_COLOR,
   EDGE_ACTIVE_OPACITY,
   EDGE_INTERACTION_WIDTH,
   EDGE_REST_OPACITY,
@@ -68,6 +69,7 @@ export function CanvasEdgeView({
           style={{
             ...CANVAS_EDGE_STYLE,
             ...style,
+            stroke: DEFAULT_EDGE_COLOR,
             opacity: isActive ? EDGE_ACTIVE_OPACITY : EDGE_REST_OPACITY,
           }}
         />

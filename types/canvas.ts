@@ -72,7 +72,7 @@ export interface CanvasEdgeData extends Record<string, unknown> {
 
 export type CanvasEdge = Edge<CanvasEdgeData, "canvasEdge">;
 
-export const DEFAULT_EDGE_COLOR = "#f8fafc";
+export const DEFAULT_EDGE_COLOR = "var(--canvas-edge)";
 export const EDGE_STROKE_WIDTH = 1.5;
 export const EDGE_INTERACTION_WIDTH = 24;
 export const EDGE_REST_OPACITY = 0.45;
